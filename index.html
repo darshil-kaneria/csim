@@ -1,12 +1,326 @@
+<!--
+    Template structure generated with the assistance of AI.
+    The actual content and information on this website is not AI-generated.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-processor Cache Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth; /* Add smooth scrolling for the entire page */
+        }
+
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --accent-color: #e74c3c;
+            --text-color: #34495e;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        :target {
+            scroll-margin-top: 80px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f5f7fa;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #1a2a3a 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(rgba(255,255,255,0.1), transparent 70%);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        header h1 {
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        nav {
+            background-color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        nav ul li {
+            margin: 0 5px;
+        }
+        
+        nav ul li a {
+            color: var(--dark-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: var(--transition);
+            display: inline-block;
+        }
+        
+        nav ul li a:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        /* section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        } */
+        
+        section h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        section h3 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        ul li {
+            margin-bottom: 8px;
+        }
+        
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+        
+        .team-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .team-member {
+            flex: 1;
+            min-width: 250px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-top: 3px solid var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .team-member:nth-child(2) {
+            border-top: 3px solid var(--secondary-color);
+        }
+        
+        .team-member:nth-child(3) {
+            border-top: 3px solid var(--accent-color);
+        }
+        
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .team-member h3 {
+            margin-top: 0;
+            font-weight: 600;
+        }
+        
+        pre {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Roboto Mono', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        code {
+            font-family: 'Roboto Mono', monospace;
+            color: #e83e8c;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            background-color: var(--dark-color);
+            color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        
+        /* Feature list styling */
+        .feature-list li {
+            padding-left: 10px;
+            position: relative;
+        }
+        
+        .feature-list li strong {
+            color: var(--primary-color);
+        }
+        
+        /* Button styling */
+        .download-btn {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 10px;
+            transition: var(--transition);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .download-btn:hover {
+            background-color: var(--secondary-color);
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .download-btn i {
+            margin-right: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Multi-processor Cache Simulator</h1>
-    <p>Welcome to the Multi-processor Cache Simulator.</p>
+    <header>
+        <h1>Multi-processor Cache Simulator</h1>
+        <p>A tool for simulating and analyzing multi-processor cache behavior</p>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="#overview"><i class="fas fa-info-circle"></i> Overview</a></li>
+            <li><a href="#proposal"><i class="fas fa-project-diagram"></i> Project Proposal</a></li>
+            <li><a href="#milestone"><i class="fas fa-flag-checkered"></i> Milestone Report</a></li>
+            <li><a href="#details"><i class="fas fa-tasks"></i> Project Details</a></li>
+            <li><a href="#team"><i class="fas fa-users"></i> Team</a></li>
+        </ul>
+    </nav>
+    
+    <section id="overview">
+        <h2>Overview</h2>
+        <p>[Project overview will go here]</p>
+    </section>
+    
+    <section id="proposal">
+        <h2>Project Proposal</h2>
+        <p>[Project proposal content will go here]</p>
+        <p><a href="documents/proposal.pdf" class="download-btn"><i class="fas fa-download"></i> Download Full Project Proposal</a></p>
+    </section>
+    
+    <section id="milestone">
+        <h2>Milestone Report</h2>
+        <p>[Milestone report content will go here]</p>
+        <p><a href="documents/milestone.pdf" class="download-btn"><i class="fas fa-download"></i> Download Complete Milestone Report</a></p>
+    </section>
+    
+    <section id="details">
+        <h2>Project Details</h2>
+        <h3>Technical Features</h3>
+        <p>[Technical features will go here]</p>
+        
+        <h3>Usage Examples</h3>
+        <pre><code>[Code examples will go here]</code></pre>
+        
+        <h3>Documentation</h3>
+        <p>Comprehensive documentation is available in the <a href="docs/index.html">Documentation Section</a>.</p>
+    </section>
+    
+    <section id="team">
+        <h2>Team</h2>
+        <div class="team-info">
+            <div class="team-member">
+                <h3><i class="fas fa-user-tie"></i> <a href="https://www.linkedin.com/in/darshilkaneria/" target="_blank"> Darshil Kaneria</a></h3>
+            </div>
+            
+            <div class="team-member">
+                <h3><i class="fas fa-user-tie"></i> <a href="https://www.linkedin.com/in/oluwaseyibello/" target="_blank"> Oluwaseyi Bello</a></h3>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <p>© 2025 Multi-processor Cache Simulator Project | Carnegie Mellon University</p>
+    </footer>
 </body>
 </html>
