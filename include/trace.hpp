@@ -2,6 +2,7 @@
 
 namespace csim
 {
+    // TODO: Ensure to get the block address.
 
     enum OperationType
     {

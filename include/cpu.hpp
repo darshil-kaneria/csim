@@ -1,12 +1,12 @@
 #pragma once
 
-#include <trace.hpp>
+#include "trace.hpp"
 #include <vector>
 #include "memreq.hpp"
 
 namespace csim
 {
-    class Cache;
+    class Caches;
     class TraceReader;
 
     class CPU
@@ -18,7 +18,7 @@ namespace csim
          * @param num_procs The number of processes. Default is set to 8.
          * @param cache A pointer to the cache component.
          */
-        CPU(TraceReader *trace_reader, uint8_t num_procs, Cache *cache);
+        CPU(TraceReader *trace_reader, uint8_t num_procs, Caches *cache);
         /**
          * @brief Advances CPU by 1 tick/cycle.
          *
@@ -39,7 +39,7 @@ namespace csim
         TraceReader *trace_reader_;             // Trace reader to read traces
         uint8_t num_procs_ = 8;                 // Number of processes.
         uint64_t cycles_;                       // The cycle count.
-        Cache *cache_;                          // The caches in the system.
+        Caches *cache_;                         // The caches in the system.
         std::vector<bool> proc_pending_mem_;    // True if the processor is waiting on a memory request.
         std::vector<uint64_t> proc_seq_;        // Strictly Increasing sequence number per processor
         std::vector<MemReq> proc_pending_reqs_; // Pending memory request for each processor.
