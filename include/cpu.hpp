@@ -4,15 +4,21 @@
 #include <vector>
 #include "memreq.hpp"
 
-class Cache;
-class TraceReader;
-
 namespace csim
 {
+    class Cache;
+    class TraceReader;
 
     class CPU
     {
     public:
+        /**
+         * @brief CPU constructor
+         * @param trace_reader The trace reader that supplies instructions to the CPU to process.
+         * @param num_procs The number of processes. Default is set to 8.
+         * @param cache A pointer to the cache component.
+         */
+        CPU(TraceReader *trace_reader, uint8_t num_procs, Cache *cache);
         /**
          * @brief Advances CPU by 1 tick/cycle.
          *
@@ -28,14 +34,6 @@ namespace csim
          * @return
          */
         void requestCompleted(MemReq memreq); // Function called when a pending memory request is completed
-
-        /**
-         * @brief CPU constructor
-         * @param trace_reader The trace reader that supplies instructions to the CPU to process.
-         * @param num_procs The number of processes. Default is set to 8.
-         * @param cache A pointer to the cache component.
-         */
-        CPU::CPU(TraceReader *trace_reader, uint8_t num_procs, Cache *cache);
 
     private:
         TraceReader *trace_reader_;             // Trace reader to read traces

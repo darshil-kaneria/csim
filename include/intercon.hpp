@@ -5,6 +5,6 @@ namespace csim
     class SnoopInterconnect
     {
 
-    }
+    };
 
 }

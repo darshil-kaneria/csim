@@ -3,10 +3,11 @@
 #include "trace.hpp"
 #include <cstdint>
 
-class CPU;
+
 
 namespace csim
 {
+    class CPU;
 
     struct MemReq
     {

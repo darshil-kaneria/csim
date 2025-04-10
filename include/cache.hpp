@@ -21,11 +21,11 @@ namespace csim
     {
     public:
         bool tick();
-        void requestFromProcessor(MemoryRequest memReq);
+        void requestFromProcessor(MemReq memReq);
 
     private:
         int num_caches;
-        std::vector<Cache> caches;
+        // std::vector<Cache> caches;
         
     };
 

@@ -2,10 +2,11 @@
 #include "cache.hpp"
 #include <iostream>
 
+
 namespace csim
 {
     
-    CPU::CPU(TraceReader *trace_reader, uint8_t num_procs = 8, Cache *cache) : trace_reader_(trace_reader), num_procs_(num_procs), cache_(cache)
+    CPU::CPU(TraceReader *trace_reader, uint8_t num_procs, Cache *cache) : trace_reader_(trace_reader), num_procs_(num_procs), cache_(cache)
     {
         cycles_ = 0;
         proc_pending_mem_ = std::vector<bool>(num_procs_, false);
