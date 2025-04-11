@@ -76,16 +76,16 @@ namespace csim
     public:
         void tick();
         void requestFromProcessor(MemReq memReq);
-        void trafficFromBus(BusMsg bus_msg);
-        void dataProvidedFromBus(BusMsg bus_msg);
+        void requestFromBus(BusMsg bus_msg);
+        void replyFromBus(BusMsg bus_msg);
+        Caches(int num_procs = 8, SnoopIntercon *intercon = nullptr);
 
     private:
         int num_procs_;
         bool isReqAHit(MemReq &memReq);
-        std::vector<std::optional<MemReq>> done_requests_;
         std::vector<std::optional<MemReq>> pending_requests_;
-        SnoopIntercon *intercon;
-        std::vector<Cache> caches;
+        SnoopIntercon *intercon_;
+        std::vector<Cache> caches_;
     };
 
 }

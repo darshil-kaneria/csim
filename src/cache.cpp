@@ -14,9 +14,8 @@ namespace csim
     {
         if (isReqAHit(memreq))
         {
-            // request from processor is a hit, enque request in done queue to notify processor in next tick.
-            uint8_t proc = memreq.proc_;
-            done_requests_[proc] = memreq;
+            // request from processor is a hit, respond to processor and return.
+            memreq.processor_->requestCompleted(memreq);
             return;
         }
 
@@ -24,20 +23,26 @@ namespace csim
 
         // make request on bus
         BusMsgType bus_msg_type = (memreq.inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE;
-        BusMsg bus_msg = {.type = bus_msg_type, .state = NONE, .memreq = memreq, .cache = this};
-        intercon->SendBusMessage(bus_msg);
+        BusMsg bus_msg = {.type = bus_msg_type, .state = NONE, .memreq = memreq, .cache = this, .src_proc_=memreq.proc_};
+        intercon_->requestFromCache(bus_msg);
 
         // save request waiting for response.
         uint8_t proc = memreq.proc_;
         pending_requests_[proc] = memreq;
     }
 
-    void Caches::trafficFromBus(BusMsg bus_msg)
+    void Caches::requestFromBus(BusMsg bus_msg)
     {
     }
 
-    void Caches::dataProvidedFromBus(BusMsg bus_msg)
+    void Caches::replyFromBus(BusMsg bus_msg)
     {
+    }
+
+    Caches::Caches(int num_procs, SnoopIntercon *intercon) : num_procs_(num_procs), intercon_(intercon)
+    {
+        pending_requests_ = std::vector<std::optional<MemReq>>(num_procs_, std::nullopt);
+        caches_ = std::vector(num_procs_, Cache{});
     }
 
     bool Caches::isReqAHit(MemReq &memreq)
@@ -48,16 +53,12 @@ namespace csim
 
     void Caches::tick()
     {
-        intercon->tick();
-
-        // process all done requests
-        for (int proc = 0; proc < num_procs_; proc++) {
-            if (done_requests_[proc]) {
-                MemReq &done_request = done_requests_[proc].value();
-                done_request.processor_->requestCompleted(done_request);
-                done_requests_[proc] = std::nullopt;
-            }
-        }
-      
+        intercon_->tick();
+    }
+    Cache::Cache(uint32_t set_assoc, uint32_t block_size, uint32_t tag_size, uint32_t addr_len)
+    {
+    }
+    Cache::~Cache()
+    {
     }
 }

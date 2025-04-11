@@ -10,7 +10,9 @@ namespace csim
     {
     public:
         bool tick();
-        void SendBusMessage(BusMsg bus_msg);
+        void requestFromCache(BusMsg bus_msg);
+        void replyFromCache(BusMsg bus_msg);
+        SnoopIntercon(int num_proc = 8);
 
     private:
         int num_proc_;

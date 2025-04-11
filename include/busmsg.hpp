@@ -10,6 +10,8 @@ namespace csim
     {
         BUSREAD,
         BUSWRITE,
+        BUSDATA,
+        BUSSHARED
     };
 
     enum BusMsgState
@@ -17,7 +19,7 @@ namespace csim
         NONE,
         QUEUED,
         CACHE_DELAY,
-        MEMORY_DELAY,
+        REQUESTED_DATA,
         CACHE_PROVIDED_DATA,
         MEMORY_PROVIDED_DATA,
     };
@@ -28,10 +30,7 @@ namespace csim
         BusMsgState state;
         MemReq memreq; // The memory request that triggered this bus packet originally (if any)
         Caches *cache;
+        uint8_t src_proc_;
     };
-
-    
-
-    
 
 }

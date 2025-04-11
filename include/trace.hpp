@@ -1,4 +1,4 @@
-# pragma once
+#pragma once
 
 namespace csim
 {
@@ -14,18 +14,16 @@ namespace csim
     {
         OperationType command;
         int address;
-        bool operator==(Instruction&);
+        bool operator==(Instruction &);
     };
 
     class TraceReader
     {
     public:
         Instruction readNextLine(int proc_num);
-        
 
     private:
         int proc_num;
     };
 
-   
 }

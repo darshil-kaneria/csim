@@ -36,13 +36,11 @@ namespace csim
         void requestCompleted(MemReq memreq); // Function called when a pending memory request is completed
 
     private:
-        TraceReader *trace_reader_;             // Trace reader to read traces
-        uint8_t num_procs_ = 8;                 // Number of processes.
-        uint64_t cycles_;                       // The cycle count.
-        Caches *cache_;                         // The caches in the system.
-        std::vector<bool> proc_pending_mem_;    // True if the processor is waiting on a memory request.
-        std::vector<uint64_t> proc_seq_;        // Strictly Increasing sequence number per processor
-        std::vector<MemReq> proc_pending_reqs_; // Pending memory request for each processor.
-        bool should_stop_ = false;              // Whether processor should stop executing
+        TraceReader *trace_reader_;                            // Trace reader to read traces
+        uint8_t num_procs_;                                    // Number of processes.
+        uint64_t cycles_;                                      // The cycle count.
+        Caches *cache_;                                        // The caches in the system.
+        std::vector<uint64_t> proc_seq_;                       // Strictly Increasing sequence number per processor
+        std::vector<std::optional<MemReq>> proc_pending_reqs_; // Pending memory request for each processor.
     };
 }

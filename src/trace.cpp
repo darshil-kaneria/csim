@@ -7,7 +7,8 @@ namespace csim
         return this->address == other.address && this->command == other.command;
     }
 
-    Instruction TraceReader::readNextLine(int proc_num) {
+    Instruction TraceReader::readNextLine(int proc_num)
+    {
         return Instruction{};
     }
 }
