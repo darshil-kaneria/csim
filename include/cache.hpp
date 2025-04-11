@@ -1,16 +1,15 @@
 #pragma once
 
-#include <optional>
-#include "memreq.hpp"
+#include "busmsg.hpp"
 #include <cstdint>
 #include <vector>
 #include "cpu.hpp"
 #include <queue>
-#include "busmsg.hpp"
+#include "cpumsg.hpp"
 
 namespace csim
 {
-    class SnoopIntercon;
+    class SnoopBus;
     enum CoherenceStates
     {
         MODIFIED,
@@ -31,26 +30,25 @@ namespace csim
     {
         CoherenceStates coherstate;
     };
+
     // This is the cache class
     struct Cache
     {
-        std::unordered_map<uint64_t, Line> lines;
+        std::unordered_map<size_t, Line> lines;
+        std::priority_queue<BusMsg> inputqbus;
+        std::priority_queue<CPUMsg> inputqcpu;
     };
 
     class Caches
     {
     public:
         void tick();
-        void requestFromProcessor(MemReq memReq);
-        void requestFromBus(BusMsg bus_msg);
-        void replyFromBus(BusMsg bus_msg);
-        Caches(int num_procs = 8, SnoopIntercon *intercon = nullptr, CoherenceProtocol coherproto = MI);
+        Caches(size_t num_procs = 8, SnoopIntercon *intercon = nullptr, CoherenceProtocol coherproto = MI);
 
     private:
-        int num_procs_;
-        bool isReqAHit(MemReq &memReq);
-        std::vector<std::optional<MemReq>> pending_requests_;
-        SnoopIntercon *intercon_;
+        size_t num_procs_;
+        SnoopBus *snoopbus_;
+        CPUS *cpu;
         std::vector<Cache> caches_;
         CoherenceProtocol coherproto_;
     };
