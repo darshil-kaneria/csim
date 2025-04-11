@@ -34,4 +34,8 @@ namespace csim
         uint8_t dst_proc_;
     };
 
+    std::ostream &operator<<(std::ostream &os, const BusMsgState &busmsgstate);
+    std::ostream &operator<<(std::ostream &os, const BusMsgType &busmsgtype);
+    std::ostream &operator<<(std::ostream &os, const BusMsg &busmsg);
+
 }

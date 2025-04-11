@@ -23,6 +23,7 @@ namespace csim
             if (proc_pending_reqs_[proc])
             {
                 // processor is waiting on memory, nothing to do in this tick.
+                // std::cout << "processor " << (int)proc << " is waiting on memory" << std::endl;
                 still_running = true;
                 continue;
             }
@@ -42,7 +43,7 @@ namespace csim
             uint64_t seq = proc_seq_[proc]++;
 
             // pass instruction to cache
-            MemReq mem_request(*inst, proc, seq, this);
+            MemReq mem_request = {.inst_ = *inst, .proc_ = proc, .proc_seq_ = seq, .processor_ = this};
             proc_pending_reqs_[proc] = mem_request;
             cache_->requestFromProcessor(mem_request);
             still_running = true;

@@ -16,9 +16,11 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/cpu.cpp
     ${PROJECT_SOURCE_DIR}/src/cache.cpp
     ${PROJECT_SOURCE_DIR}/src/intercon.cpp
-    ${PROJECT_SOURCE_DIR}/src/memreq.cpp
     ${PROJECT_SOURCE_DIR}/src/trace.cpp
     ${PROJECT_SOURCE_DIR}/src/busmsg.cpp
+    ${PROJECT_SOURCE_DIR}/src/memreq.cpp
+
+
 )
 
 # Add executable

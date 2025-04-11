@@ -1,6 +1,7 @@
 #include "intercon.hpp"
 #include <cassert>
 #include "cache.hpp"
+#include <iostream>
 
 namespace csim
 {
@@ -21,9 +22,10 @@ namespace csim
                     BusMsg &bus_msg = queued_msgs_[proc].value();
                     curr_msg_ = bus_msg;
                     delay_ = CACHE_DELAY_TIME;
-
+                    curr_msg_->state = CACHE_DELAY;
                     queued_msgs_[proc].reset();
 
+                    std::cout << "Now processing " << *curr_msg_ << std::endl;
                     last_proc_ = proc;
                     break;
                 }
@@ -42,6 +44,7 @@ namespace csim
             return true;
         }
 
+
         // delay == 0, some action should occur
         if (curr_msg_->state == CACHE_DELAY)
         {
@@ -57,6 +60,7 @@ namespace csim
             {
                 // TODO send notification that data has been provided
                 curr_msg_->cache->replyFromBus(curr_msg_.value());
+                std::cout << "Processed " << *curr_msg_ << std::endl;
                 curr_msg_.reset();
                 delay_ = 0;
             }
@@ -71,6 +75,7 @@ namespace csim
 
             // TODO send notification that data has been provided
             curr_msg_->cache->replyFromBus(curr_msg_.value());
+            std::cout << "Processed " << *curr_msg_ << std::endl;
 
             curr_msg_.reset();
             delay_ = 0;
@@ -80,17 +85,22 @@ namespace csim
 
     void SnoopIntercon::requestFromCache(BusMsg bus_msg)
     {
-        // a bus request is received on the interconnect from a cache.
+        // A bus request is received on the interconnect from a cache.
         // ideally should broacast immediately but we simulate time by waiting for CACHE DELAY
 
+        std::cout << "Request received on bus " << bus_msg << std::endl;
+        
         assert(bus_msg.type == BUSREAD || bus_msg.type == BUSWRITE);
 
         if (!curr_msg_)
         {
             // No message is being processed on the bus
             curr_msg_ = bus_msg;
+
             curr_msg_->state = CACHE_DELAY;
             delay_ = CACHE_DELAY_TIME;
+            std::cout << "Now processing " << *curr_msg_ << std::endl;
+
             return;
         }
 

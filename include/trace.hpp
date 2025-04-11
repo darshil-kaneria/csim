@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <iostream>
 namespace csim
 {
     // TODO: Ensure to get the block address.
@@ -17,13 +19,14 @@ namespace csim
         bool operator==(Instruction &);
     };
 
-    class TraceReader
+    struct TraceReader
     {
-    public:
         Instruction readNextLine(int proc_num);
-
-    private:
-        int proc_num;
+        int proc_num_;
+        std::string directory_;
     };
 
+    std::ostream &operator<<(std::ostream &os, const OperationType &op);
+
+    std::ostream &operator<<(std::ostream &os, const Instruction &ins);
 }

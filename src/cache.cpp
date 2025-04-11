@@ -1,5 +1,6 @@
 #include "cache.hpp"
 #include "intercon.hpp"
+#include <iostream>
 
 namespace csim
 {
@@ -8,6 +9,7 @@ namespace csim
     {
         if (isReqAHit(memreq))
         {
+            // std::cout << "processor " << memreq.proc_ << " " << memreq.inst_.command << " " << memreq.inst_.address << " cache hit" << std::endl;
             // request from processor is a hit, respond to processor and return.
             memreq.processor_->requestCompleted(memreq);
             return;
