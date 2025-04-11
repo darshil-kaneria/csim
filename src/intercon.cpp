@@ -22,7 +22,7 @@ namespace csim
                     curr_msg_ = bus_msg;
                     delay_ = CACHE_DELAY_TIME;
 
-                    queued_msgs_[proc] = std::nullopt;
+                    queued_msgs_[proc].reset();
 
                     last_proc_ = proc;
                     break;
@@ -32,7 +32,7 @@ namespace csim
         }
 
         // A message is on the bus.
-        assert(curr_msg_ != std::nullopt);
+        assert(curr_msg_.has_value());
 
         delay_--;
 
@@ -57,7 +57,7 @@ namespace csim
             {
                 // TODO send notification that data has been provided
                 curr_msg_->cache->replyFromBus(curr_msg_.value());
-                curr_msg_ = std::nullopt;
+                curr_msg_.reset();
                 delay_ = 0;
             }
             return true;
@@ -72,7 +72,7 @@ namespace csim
             // TODO send notification that data has been provided
             curr_msg_->cache->replyFromBus(curr_msg_.value());
 
-            curr_msg_ = std::nullopt;
+            curr_msg_.reset();
             delay_ = 0;
         }
         return true;
@@ -95,6 +95,7 @@ namespace csim
         }
 
         // There is a message on the bus, put on processors slot, first ensure processor's slot is empty.
+        bus_msg.state = QUEUED;
         assert(!queued_msgs_[bus_msg.memreq.proc_]);
         queued_msgs_[bus_msg.memreq.proc_] = bus_msg;
     }
@@ -105,7 +106,7 @@ namespace csim
         // tell all the caches.
 
         assert(bus_msg.type == BUSDATA || bus_msg.type == BUSSHARED);
-        assert(curr_msg_.has_value());
+        assert(curr_msg_);
         assert(curr_msg_->memreq == bus_msg.memreq);
 
         // send message to all caches

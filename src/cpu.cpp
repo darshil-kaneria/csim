@@ -56,7 +56,7 @@ namespace csim
 
         if (proc_pending_reqs_[memreq.proc_].value() == memreq)
         {
-            proc_pending_reqs_[memreq.proc_] = std::nullopt;
+            proc_pending_reqs_[memreq.proc_].reset();
         }
         else
         {

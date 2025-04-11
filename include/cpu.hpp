@@ -22,7 +22,7 @@ namespace csim
         /**
          * @brief Advances CPU by 1 tick/cycle.
          *
-         * CPU calls cache tick  first.
+         * CPU calls cache tick first.
          * Afterwards, it checks if it can process for any processor, reads tracefile and sends request to cache component.
          */
         bool tick();

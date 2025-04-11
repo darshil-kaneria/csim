@@ -31,6 +31,7 @@ namespace csim
         MemReq memreq; // The memory request that triggered this bus packet originally (if any)
         Caches *cache;
         uint8_t src_proc_;
+        uint8_t dst_proc_;
     };
 
 }

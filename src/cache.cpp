@@ -3,13 +3,7 @@
 
 namespace csim
 {
-    // Cache::Cache(uint32_t set_assoc, uint32_t block_size, uint32_t tag_size, uint32_t addr_len)
-    // : set_assoc_(set_assoc),
-    // block_size_(block_size),
-    // tag_size_(tag_size),
-    // addr_len_(addr_len) {
-    //     // Todo...
-    // }
+
     void Caches::requestFromProcessor(MemReq memreq)
     {
         if (isReqAHit(memreq))
@@ -20,10 +14,21 @@ namespace csim
         }
 
         // request is a miss. Begin coherence stuff.
+        switch (coherproto_)
+        {
+        case MI:
+            break;
+        case MSI:
+            break;
+        case MESI:
+            break;
+        default:
+            break;
+        }
 
         // make request on bus
         BusMsgType bus_msg_type = (memreq.inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE;
-        BusMsg bus_msg = {.type = bus_msg_type, .state = NONE, .memreq = memreq, .cache = this, .src_proc_=memreq.proc_};
+        BusMsg bus_msg = {.type = bus_msg_type, .state = NONE, .memreq = memreq, .cache = this, .src_proc_ = memreq.proc_};
         intercon_->requestFromCache(bus_msg);
 
         // save request waiting for response.
@@ -33,13 +38,35 @@ namespace csim
 
     void Caches::requestFromBus(BusMsg bus_msg)
     {
+        switch (coherproto_)
+        {
+        case MI:
+            break;
+        case MSI:
+            break;
+        case MESI:
+            break;
+        default:
+            break;
+        }
     }
 
     void Caches::replyFromBus(BusMsg bus_msg)
     {
+        switch (coherproto_)
+        {
+        case MI:
+            break;
+        case MSI:
+            break;
+        case MESI:
+            break;
+        default:
+            break;
+        }
     }
 
-    Caches::Caches(int num_procs, SnoopIntercon *intercon) : num_procs_(num_procs), intercon_(intercon)
+    Caches::Caches(int num_procs, SnoopIntercon *intercon, CoherenceProtocol coherproto) : num_procs_(num_procs), intercon_(intercon), coherproto_(coherproto)
     {
         pending_requests_ = std::vector<std::optional<MemReq>>(num_procs_, std::nullopt);
         caches_ = std::vector(num_procs_, Cache{});
@@ -47,18 +74,34 @@ namespace csim
 
     bool Caches::isReqAHit(MemReq &memreq)
     {
-        // TODO check cache if it is a hit
+        uint64_t address = memreq.inst_.address;
+        OperationType reqtype = memreq.inst_.command;
+
+        uint8_t proc = memreq.proc_;
+
+        Cache &cache = caches_.at(proc);
+        if (cache.lines.find(address) == cache.lines.end())
+        {
+            // doesn't exist in cache.
+            return false;
+        }
+
+        Line &line = cache.lines[address];
+
+        if (reqtype == OperationType::MEM_LOAD)
+        {
+            return (line.coherstate == CoherenceStates::EXCLUSIVE || line.coherstate == CoherenceStates::MODIFIED || line.coherstate == CoherenceStates::SHARED);
+        }
+        else // A store
+        {
+            return (line.coherstate == CoherenceStates::MODIFIED);
+        }
+
         return false;
     }
 
     void Caches::tick()
     {
         intercon_->tick();
-    }
-    Cache::Cache(uint32_t set_assoc, uint32_t block_size, uint32_t tag_size, uint32_t addr_len)
-    {
-    }
-    Cache::~Cache()
-    {
     }
 }
