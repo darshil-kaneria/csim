@@ -1,26 +1,35 @@
-// #include "trace.hpp"
-// #include <cstdint>
-// #include <string>
-// #include "cpu.hpp"
-// #include "intercon.hpp"
-// #include "cache.hpp"
-// #include <iostream>
+#include "trace.hpp"
+#include <cstdint>
+#include <string>
+#include "cpu.hpp"
+#include "bus.hpp"
+#include "cache.hpp"
+#include <iostream>
+#include "memory.hpp"
+
+using namespace csim;
 
 int main(int argc, char *argv[])
 {
-//     uint8_t proc_num = 8;
-//     std::string directory = "";
+    size_t num_procs = 8;
+    std::string directory = "";
 
-//     std::cout << "No of Processors: " << (int)proc_num << std::endl;
-//     csim::CoherenceProtocol coherproto = static_cast<csim::CoherenceProtocol>(0);
-//     csim::TraceReader tr{.proc_num_ = proc_num, .directory_ = directory};
-//     csim::SnoopIntercon interconn(proc_num);
-//     csim::Caches caches(proc_num, &interconn, coherproto);
-//     csim::CPU cpu(&tr, proc_num, &caches);
+    std::cout << "No of Processors: " <<  num_procs << std::endl;
+    CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(0);
+    TraceReader tr{.num_procs_ = num_procs, .directory_ = directory};
 
-//     bool running = false;
-//     do
-//     {
-//         running = cpu.tick();
-//     } while (running);
+    CPUS cpus(&tr, num_procs, nullptr);
+    Caches caches(num_procs, nullptr, &cpus, coherproto);
+    SnoopBus bus(num_procs, &caches, nullptr);
+    Memory mem(&bus);
+
+    cpus.setCaches(&caches);
+    caches.setBus(&bus);
+    bus.setMemory(&mem);
+
+    bool running = false;
+    do
+    {
+        running = cpus.tick();
+    } while (running);
 }

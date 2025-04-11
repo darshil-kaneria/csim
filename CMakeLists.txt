@@ -19,8 +19,8 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/trace.cpp
     ${PROJECT_SOURCE_DIR}/src/busmsg.cpp
     ${PROJECT_SOURCE_DIR}/src/cpumsg.cpp
-
-
+    ${PROJECT_SOURCE_DIR}/src/globals.cpp
+    ${PROJECT_SOURCE_DIR}/src/memory.cpp
 )
 
 # Add executable

@@ -15,14 +15,14 @@ namespace csim
     struct Instruction
     {
         OperationType command;
-        int address;
+        size_t address;
         bool operator==(Instruction &);
     };
 
     struct TraceReader
     {
         Instruction readNextLine(int proc_num);
-        int proc_num_;
+        size_t num_procs_;
         std::string directory_;
     };
 
