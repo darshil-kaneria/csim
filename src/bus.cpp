@@ -9,6 +9,11 @@ namespace csim
     {
         // process a request from bus.
         assert(!curr_msg_);
+
+        if (inputq_.empty()) {
+            return;
+        }
+
         BusMsg busreq = inputq_.front();
         inputq_.pop();
 
