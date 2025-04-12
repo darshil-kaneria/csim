@@ -35,22 +35,21 @@ namespace csim
     struct Cache
     {
         std::unordered_map<size_t, Line> lines;
-        std::priority_queue<BusMsg, std::vector<BusMsg>, BusMsgComparator> inputqbus;
-        std::priority_queue<CPUMsg, std::vector<CPUMsg>, CPUMsgComparator> inputqcpu;
-        std::optional<BusMsg> pendingmsg;
-
-        bool isAHit(CPUMsg cpureq);
+        std::optional<BusMsg> pending_bus_msg;
+        CoherenceProtocol coherproto_;
+        bool isAHit(CPUMsg &cpureq);
     };
 
     class Caches
     {
     public:
         void tick();
-        void enqueueMsgFromProc(CPUMsg &cpumsg, size_t proc);
-        void enqueueMsgFromBus(BusMsg &busmsg, size_t proc);
+        void requestFromProcessor(CPUMsg cpumsg);
+        void requestFromBus(BusMsg busmsg);
+        void replyFromBus(BusMsg busmsg);
         Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto);
-        void setBus(SnoopBus* snoopbus);
-        void setCPUs(CPUS* cpus);
+        void setBus(SnoopBus *snoopbus);
+        void setCPUs(CPUS *cpus);
 
     private:
         size_t num_procs_;

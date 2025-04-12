@@ -16,8 +16,10 @@ namespace csim
     {
         BUSREAD,
         BUSWRITE,
+        BUSUPGRADE,
         BUSDATA,
-        BUSSHARED
+        BUSSHARED,
+        MEMDATA
     };
 
     struct BusMsg

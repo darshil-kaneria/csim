@@ -7,24 +7,6 @@ namespace csim
 {
     bool CPUS::tick()
     {
-        // Process any done requests
-        for (size_t proc = 0; proc < num_procs_; proc++)
-        {
-            CPU &cpu = cpus[proc];
-            std::priority_queue<CPUMsg, std::vector<CPUMsg>, CPUMsgComparator> &inputq = cpu.inputq;
-
-            while (!inputq.empty() && inputq.top().proc_cycle_ <= cycle)
-            {
-                CPUMsg cpumsg = inputq.top();
-
-                assert(cpu.curr_req_);
-                assert(cpumsg == cpu.curr_req_.value());
-
-                cpu.curr_req_.reset();
-
-                inputq.pop();
-            }
-        }
 
         bool progress = false;
 
@@ -32,7 +14,7 @@ namespace csim
         {
             CPU &cpu = cpus[proc];
 
-            if (cpu.curr_req_)
+            if (cpu.pending_req_)
             {
                 // stalling due to ongoing operation.
                 progress = true;
@@ -40,6 +22,10 @@ namespace csim
             }
 
             // processor not waiting on memory
+
+            // ensure no pending requests
+            assert(!cpu.pending_req_);
+
             // get next instruction
             std::optional<Instruction> inst = trace_reader_->readNextLine(proc);
 
@@ -49,7 +35,7 @@ namespace csim
                 continue;
             }
 
-            // enqueue request to cache
+            // send request to cache
             size_t seq = cpu.seq_++;
 
             CPUMsg cpumsg = CPUMsg{.proc_cycle_ = cycle,
@@ -57,9 +43,9 @@ namespace csim
                                    .inst_ = *inst,
                                    .proc_ = proc,
                                    .proc_seq_ = seq};
-            cpu.curr_req_ = cpumsg;
+            cpu.pending_req_ = cpumsg;
 
-            caches_->enqueueMsgFromProc(cpumsg, proc);
+            caches_->requestFromProcessor(cpumsg);
 
             progress = true;
         }
@@ -71,9 +57,13 @@ namespace csim
         return progress;
     }
 
-    void CPUS::enqueueMsgFromCache(CPUMsg cpumsg, size_t proc)
+    void CPUS::replyFromCache(CPUMsg cpumsg)
     {
-        cpus[proc].inputq.push(cpumsg);
+        size_t proc = cpumsg.proc_;
+        CPU &cpu = cpus[proc];
+        assert(cpu.pending_req_);
+        assert(cpu.pending_req_.value() == cpumsg);
+        cpu.pending_req_.reset();
     }
 
     void CPUS::setCaches(Caches *caches)
@@ -83,9 +73,6 @@ namespace csim
 
     CPUS::CPUS(TraceReader *trace_reader, size_t num_procs, Caches *caches) : trace_reader_(trace_reader), num_procs_(num_procs), caches_(caches)
     {
-        cpus = std::vector(num_procs_, CPU{
-                                           .seq_ = 0,
-                                           .curr_req_ = std::nullopt,
-                                           .inputq = std::priority_queue<CPUMsg, std::vector<CPUMsg>, CPUMsgComparator>()});
+        cpus = std::vector(num_procs_, CPU{.seq_ = 0, .pending_req_ = std::nullopt});
     }
 }

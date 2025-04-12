@@ -11,9 +11,8 @@ namespace csim
 
     struct CPU
     {
-        size_t seq_;                                                               // Strictly Increasing sequence number per processor.
-        std::optional<CPUMsg> curr_req_;                                           // current request being processed.
-        std::priority_queue<CPUMsg, std::vector<CPUMsg>, CPUMsgComparator> inputq; // input queue to receive messages
+        size_t seq_;                        // Strictly Increasing sequence number per processor.
+        std::optional<CPUMsg> pending_req_; // current request being processed.
     };
 
     class CPUS
@@ -22,8 +21,8 @@ namespace csim
         CPUS(TraceReader *trace_reader, size_t num_procs, Caches *cache);
         bool tick();
 
-        void enqueueMsgFromCache(CPUMsg cpumsg, size_t proc);
-        void setCaches(Caches* caches);
+        void replyFromCache(CPUMsg cpumsg);
+        void setCaches(Caches *caches);
 
     private:
         TraceReader *trace_reader_; // Trace reader to read traces

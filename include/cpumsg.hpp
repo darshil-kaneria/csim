@@ -7,7 +7,8 @@ namespace csim
 {
     class CPU;
 
-    enum CPUMsgType {
+    enum CPUMsgType
+    {
         REQUEST,
         RESPONSE,
     };
@@ -22,14 +23,15 @@ namespace csim
         bool operator==(CPUMsg &other);
     };
 
-    struct CPUMsgComparator {
-        bool operator()(const CPUMsg& first, const CPUMsg& second) {
+    struct CPUMsgComparator
+    {
+        bool operator()(const CPUMsg &first, const CPUMsg &second)
+        {
             return first.proc_cycle_ > second.proc_cycle_;
         }
     };
 
-    std::ostream& operator<<(std::ostream& os, const CPUMsgType& req);
-    std::ostream& operator<<(std::ostream& os, const CPUMsg& req);
-
+    std::ostream &operator<<(std::ostream &os, const CPUMsgType &req);
+    std::ostream &operator<<(std::ostream &os, const CPUMsg &req);
 
 }

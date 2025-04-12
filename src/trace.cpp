@@ -16,10 +16,10 @@ namespace csim
     {
         switch (op)
         {
-        case OperationType::MEM_LOAD:
+        case MEM_LOAD:
             os << "LOAD";
             break;
-        case OperationType::MEM_STORE:
+        case MEM_STORE:
             os << "STORE";
             break;
         }
