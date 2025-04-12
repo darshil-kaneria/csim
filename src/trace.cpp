@@ -7,9 +7,9 @@ namespace csim
         return this->address == other.address && this->command == other.command;
     }
 
-    Instruction TraceReader::readNextLine(int num_procs)
+    std::optional<Instruction> TraceReader::readNextLine(size_t proc)
     {
-        return Instruction{};
+        return std::nullopt;
     }
 
     std::ostream &operator<<(std::ostream &os, const OperationType &op)

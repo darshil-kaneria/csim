@@ -21,7 +21,7 @@ namespace csim
 
     struct TraceReader
     {
-        Instruction readNextLine(int proc_num);
+        std::optional<Instruction> readNextLine(size_t proc);
         size_t num_procs_;
         std::string directory_;
     };

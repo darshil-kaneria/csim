@@ -12,8 +12,12 @@ namespace csim
             BusMsg busmsg = inputq_.top();
 
             // if message is a busRd/busWrite provide data.
-            busmsg.type_ = BusMsgType::BUSDATA;
-            bus_->enqueMsg(busmsg);
+            if (busmsg.type_ == BusMsgType::BUSREAD || busmsg.type_ == BusMsgType::BUSWRITE)
+            {
+                busmsg.type_ = BusMsgType::BUSDATA;
+                busmsg.proc_cycle_ = cycle + MEMDELAY;
+                bus_->enqueMsg(busmsg);
+            }
 
             inputq_.pop();
         }
@@ -24,7 +28,6 @@ namespace csim
     }
     Memory::Memory(SnoopBus *bus) : bus_(bus)
     {
-
     }
     void Memory::setBus(SnoopBus *bus)
     {

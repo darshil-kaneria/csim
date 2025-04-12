@@ -15,9 +15,10 @@ namespace csim
 
             if (src == MEMORY)
             {
-                // check that data has not been provided
+                // Maybe TODO check that data has not been provided
 
                 // broadcast to all caches
+                busmsg.proc_cycle_ = cycle + BUSDELAY;
                 for (int proc = 0; proc < num_proc_; proc++)
                 {
                     caches_->enqueueMsgFromBus(busmsg, proc);
@@ -25,9 +26,8 @@ namespace csim
             }
             else
             {
-
                 // src is cache tell all others except cache
-                
+
                 for (int proc = 0; proc < num_proc_; proc++)
                 {
                     if (proc == src)
@@ -38,7 +38,7 @@ namespace csim
                 }
 
                 // tell memory if response has not been previously provided
-                busmsg.proc_cycle_ += MEMDELAY;
+                busmsg.proc_cycle_ = cycle + MEMDELAY;
                 memory_->enqueueMsgFromBus(busmsg);
             }
             inputq_.pop();

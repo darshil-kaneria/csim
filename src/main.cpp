@@ -11,10 +11,11 @@ using namespace csim;
 
 int main(int argc, char *argv[])
 {
+    
     size_t num_procs = 8;
     std::string directory = "";
 
-    std::cout << "No of Processors: " <<  num_procs << std::endl;
+    std::cout << "No of Processors: " << num_procs << std::endl;
     CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(0);
     TraceReader tr{.num_procs_ = num_procs, .directory_ = directory};
 

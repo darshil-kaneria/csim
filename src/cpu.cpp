@@ -20,8 +20,9 @@ namespace csim
                 assert(cpu.curr_req_);
                 assert(cpumsg == cpu.curr_req_.value());
 
-                inputq.pop();
                 cpu.curr_req_.reset();
+
+                inputq.pop();
             }
         }
 

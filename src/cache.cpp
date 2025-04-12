@@ -58,7 +58,7 @@ namespace csim
                 case CoherenceProtocol::MI:
                 case CoherenceProtocol::MSI:
                 case CoherenceProtocol::MESI:
-                break;
+                    break;
                 }
 
                 // will depend on the snoop protocol used.
@@ -103,7 +103,7 @@ namespace csim
     bool Cache::isAHit(CPUMsg cpureq)
     {
         // TODO: might depend on coherence protocol
-        return false;
+        return true;
     }
 
 }
