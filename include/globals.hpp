@@ -4,5 +4,5 @@
 
 namespace csim
 {
-    extern size_t cycle;
+    extern size_t cycles;
 }

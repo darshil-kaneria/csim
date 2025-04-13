@@ -5,7 +5,7 @@
 
 namespace csim
 {
-    void SnoopBus::tick()
+    void SnoopBus::cycle()
     {
         // process a request from bus.
         if (curr_msg_)
@@ -28,7 +28,8 @@ namespace csim
                 }
             }
 
-            // caches will change state if necessary.
+            // caches will change state if necessary. Now check state
+
             BusMsg busresp;
             busresp = curr_msg_->busmsg;
             busresp.dst_proc_ = src;
@@ -66,6 +67,7 @@ namespace csim
     {
         // received request from cache.
         // can be rd/wr/upg
+        assert(busmsg.src_proc_ == turn_);
         assert(busmsg.type_ == BUSREAD || busmsg.type_ == BUSWRITE || busmsg.type_ == BUSUPGRADE);
         assert(!curr_msg_);
         curr_msg_->busmsg = busmsg;
@@ -78,6 +80,7 @@ namespace csim
         // can be data/shared
         assert(curr_msg_);
         assert(busmsg.type_ == BUSDATA || busmsg.type_ == BUSSHARED);
+
         if (busmsg.type_ == BUSDATA)
         {
             curr_msg_->state = CACHEDATA;

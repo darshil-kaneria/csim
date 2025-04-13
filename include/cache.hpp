@@ -16,7 +16,6 @@ namespace csim
         INVALID,
         SHARED,
         EXCLUSIVE,
-        // TODO: Add intermediary states
     };
 
     enum CoherenceProtocol
@@ -43,11 +42,11 @@ namespace csim
     class Caches
     {
     public:
-        void tick();
+        Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto);
+        void cycle();
         void requestFromProcessor(CPUMsg cpumsg);
         void requestFromBus(BusMsg busmsg);
         void replyFromBus(BusMsg busmsg);
-        Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto);
         void setBus(SnoopBus *snoopbus);
         void setCPUs(CPUS *cpus);
 

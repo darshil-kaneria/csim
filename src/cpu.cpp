@@ -5,7 +5,7 @@
 
 namespace csim
 {
-    bool CPUS::tick()
+    bool CPUS::cycle()
     {
 
         bool progress = false;
@@ -38,7 +38,7 @@ namespace csim
             // send request to cache
             size_t seq = cpu.seq_++;
 
-            CPUMsg cpumsg = CPUMsg{.proc_cycle_ = cycle,
+            CPUMsg cpumsg = CPUMsg{.proc_cycle_ = cycles,
                                    .msgtype = CPUMsgType::REQUEST,
                                    .inst_ = *inst,
                                    .proc_ = proc,
@@ -50,9 +50,9 @@ namespace csim
             progress = true;
         }
 
-        caches_->tick();
+        caches_->cycle();
 
-        cycle++;
+        cycles++;
 
         return progress;
     }

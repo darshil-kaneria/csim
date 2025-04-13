@@ -29,6 +29,8 @@
         "streambuf": "cpp",
         "string": "cpp",
         "string_view": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "istream": "cpp",
+        "optional": "cpp"
     }
 }

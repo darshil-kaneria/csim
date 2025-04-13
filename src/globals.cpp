@@ -2,5 +2,5 @@
 
 namespace csim
 {
-    size_t cycle = 0;
+    size_t cycles = 0;
 }

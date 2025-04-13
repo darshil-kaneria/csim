@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.10)
 
+
+# Set the build type to Debug to enable -g (debug symbols)
+set(CMAKE_BUILD_TYPE Debug)
+
+# set debugging flags
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra")
+
 # Project name
 project(MultiProcessorCacheSim VERSION 1.0)
 
@@ -24,3 +31,8 @@ set(SOURCES
 
 # Add executable
 add_executable(mpcsim ${SOURCES})
+
+message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "CXX_FLAGS (global): ${CMAKE_CXX_FLAGS}")
+message(STATUS "CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}")

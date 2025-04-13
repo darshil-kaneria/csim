@@ -10,7 +10,6 @@ namespace csim
     const size_t MEMDELAY = 100;
 
     const size_t BROADCAST = 1000;
-    const size_t MEMORY = 2000;
 
     enum BusMsgType
     {
@@ -33,12 +32,4 @@ namespace csim
 
     std::ostream &operator<<(std::ostream &os, const BusMsgType &busmsgtype);
     std::ostream &operator<<(std::ostream &os, const BusMsg &busmsg);
-
-    struct BusMsgComparator
-    {
-        bool operator()(const BusMsg &first, const BusMsg &second)
-        {
-            return first.proc_cycle_ > second.proc_cycle_;
-        }
-    };
 }

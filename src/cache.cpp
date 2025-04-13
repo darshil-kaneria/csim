@@ -5,7 +5,7 @@
 
 namespace csim
 {
-    void Caches::tick()
+    void Caches::cycle()
     {
         // validate consistency in our cache.
 
@@ -33,7 +33,7 @@ namespace csim
 
                     // TODO: handle upgrades
                     BusMsg busreq = BusMsg{
-                        .proc_cycle_ = cycle,
+                        .proc_cycle_ = cycles,
                         .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE,
                         .cpureq_ = cache.pending_cpu_req.value(),
                         .src_proc_ = proc,
@@ -44,7 +44,7 @@ namespace csim
             }
         }
 
-        snoopbus_->tick();
+        snoopbus_->cycle();
     }
 
     void Caches::requestFromProcessor(CPUMsg cpureq)

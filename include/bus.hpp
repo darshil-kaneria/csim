@@ -7,8 +7,6 @@
 
 namespace csim
 {
-    class Memory;
-
     enum State
     {
         PROCESSING,
@@ -25,8 +23,8 @@ namespace csim
     class SnoopBus
     {
     public:
-        void tick();
         SnoopBus(size_t num_proc, Caches *caches);
+        void cycle();
         void requestFromCache(BusMsg busmsg);
         void replyFromCache(BusMsg busmsg);
         void setCaches(Caches *caches);

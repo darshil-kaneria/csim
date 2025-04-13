@@ -3,7 +3,6 @@
 
 namespace csim
 {
-
     bool CPUMsg::operator==(CPUMsg &other)
     {
         return this->inst_ == other.inst_ && this->proc_ == other.proc_ && this->proc_seq_ == other.proc_seq_;

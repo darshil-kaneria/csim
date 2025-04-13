@@ -7,7 +7,7 @@
 namespace csim
 {
     class Caches;
-    class TraceReader;
+    struct TraceReader;
 
     struct CPU
     {
@@ -19,7 +19,7 @@ namespace csim
     {
     public:
         CPUS(TraceReader *trace_reader, size_t num_procs, Caches *cache);
-        bool tick();
+        bool cycle();
 
         void replyFromCache(CPUMsg cpumsg);
         void setCaches(Caches *caches);
