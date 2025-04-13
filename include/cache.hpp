@@ -35,7 +35,7 @@ namespace csim
     struct Cache
     {
         std::unordered_map<size_t, Line> lines;
-        std::optional<BusMsg> pending_bus_msg;
+        std::optional<CPUMsg> pending_cpu_req;
         CoherenceProtocol coherproto_;
         bool isAHit(CPUMsg &cpureq);
     };

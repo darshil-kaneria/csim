@@ -9,6 +9,41 @@ namespace csim
     {
         // validate consistency in our cache.
 
+        // try to process request from processor.
+        for (size_t proc = 0; proc < num_procs_; proc++)
+        {
+            Cache &cache = caches_[proc];
+
+            if (!cache.pending_cpu_req)
+                continue;
+
+            // there is a pending request from processor
+            if (cache.isAHit(cache.pending_cpu_req.value()))
+            {
+                CPUMsg cpuresp = cache.pending_cpu_req.value();
+                cpuresp.msgtype = CPUMsgType::RESPONSE;
+                cpus_->replyFromCache(cpuresp);
+                cache.pending_cpu_req.reset();
+            }
+            else
+            {
+                // check if our turn to send on bus and send bus request
+                if (snoopbus_->isCacheTurn(proc))
+                {
+
+                    // TODO: handle upgrades
+                    BusMsg busreq = BusMsg{
+                        .proc_cycle_ = cycle,
+                        .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE,
+                        .cpureq_ = cache.pending_cpu_req.value(),
+                        .src_proc_ = proc,
+                        .dst_proc_ = BROADCAST,
+                    };
+                    snoopbus_->requestFromCache(busreq);
+                }
+            }
+        }
+
         snoopbus_->tick();
     }
 
@@ -16,24 +51,8 @@ namespace csim
     {
         size_t proc = cpureq.proc_;
         Cache &cache = caches_[proc];
-        if (cache.isAHit(cpureq))
-        {
-            CPUMsg cpuresp = cpureq;
-            cpuresp.msgtype = CPUMsgType::RESPONSE;
-            cpus_->replyFromCache(cpuresp);
-        }
-
-        assert(!cache.pending_bus_msg);
-
-        BusMsg busreq = BusMsg{
-            .proc_cycle_ = cycle,
-            .type_ = (cpureq.inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE,
-            .cpureq_ = cpureq,
-            .src_proc_ = proc,
-            .dst_proc_ = BROADCAST,
-        };
-        snoopbus_->requestFromCache(busreq);
-        cache.pending_bus_msg = busreq;
+        assert(!cache.pending_cpu_req);
+        cache.pending_cpu_req = cpureq;
     }
 
     void Caches::requestFromBus(BusMsg busmsg)
@@ -68,7 +87,7 @@ namespace csim
 
     Caches::Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto) : num_procs_(num_procs), snoopbus_(snoopbus), cpus_(cpus), coherproto_(coherproto)
     {
-        caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, Line>(), .pending_bus_msg = std::nullopt, .coherproto_ = coherproto_});
+        caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, Line>(), .pending_cpu_req = std::nullopt, .coherproto_ = coherproto_});
     }
 
     void Caches::setBus(SnoopBus *snoopbus)

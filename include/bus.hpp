@@ -30,10 +30,11 @@ namespace csim
         void requestFromCache(BusMsg busmsg);
         void replyFromCache(BusMsg busmsg);
         void setCaches(Caches *caches);
+        bool isCacheTurn(size_t proc);
 
     private:
         size_t num_proc_;
-        std::queue<BusMsg> inputq_;
+        size_t turn_;
         std::optional<CurrMsg> curr_msg_;
         Caches *caches_;
     };
