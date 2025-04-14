@@ -29,6 +29,7 @@ namespace csim
             // get next instruction
             std::optional<Instruction> inst = trace_reader_->readNextLine(proc);
 
+            std::cout << proc << " processing " << *inst << std::endl;
             // check for eof
             if (!inst)
             {

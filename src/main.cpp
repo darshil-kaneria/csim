@@ -18,8 +18,11 @@ int main(int argc, char *argv[])
     size_t num_procs = 4;
     std::string directory = "traces";
 
-    std::cout << "No of Processors: " << num_procs << std::endl;
     CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(0);
+
+
+    std::cout << "No of Processors: " << num_procs << std::endl;
+    std::cout << "Coherence Protocol: " << coherproto << std::endl;
     TraceReader tr(directory, num_procs);
 
     Stats stats(num_procs);

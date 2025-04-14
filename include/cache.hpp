@@ -11,7 +11,7 @@
 namespace csim
 {
     class SnoopBus;
-    enum CoherenceStates
+    enum CoherenceState
     {
         MODIFIED,
         INVALID,
@@ -28,16 +28,17 @@ namespace csim
 
     struct Line
     {
-        CoherenceStates coherstate;
+       
+        size_t tag;
+        CoherenceState coherstate;
     };
 
     // This is the cache class
     struct Cache
     {
-        std::unordered_map<size_t, Line> lines;
+        std::unordered_map<size_t, CoherenceState> lines;
         std::optional<CPUMsg> pending_cpu_req;
         CoherenceProtocol coherproto_;
-        bool isAHit(CPUMsg &cpureq);
     };
 
     class Caches
@@ -58,6 +59,14 @@ namespace csim
         std::vector<Cache> caches_;
         CoherenceProtocol coherproto_;
         Stats *stats_;
+
+        bool isAHit(CPUMsg &cpureq, size_t proc);
+        CoherenceState getCoherenceState(size_t address, size_t proc);
+        void setCoherenceState(size_t address, CoherenceState newstate, size_t proc);
+        
+        std::optional<BusMsg> requestFromBusMI(BusMsg& busreq, size_t proc);
+        CPUMsg replyFromBusMI(BusMsg& busresp, size_t proc);
+        bool isAHitMI(CPUMsg &cpureq, size_t proc);
     };
 
 }
