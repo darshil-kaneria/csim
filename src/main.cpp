@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     size_t num_procs = 4;
     std::string directory = "traces";
 
-    CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(1);
+    CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(2);
 
 
     std::cout << "No of Processors: " << num_procs << std::endl;

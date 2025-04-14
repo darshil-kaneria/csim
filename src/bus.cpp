@@ -33,8 +33,7 @@ namespace csim
                 }
             }
 
-            // caches will change state if necessary. Now check state
-
+            // caches will change state if necessary. Now check state.
             BusMsg busresp;
             busresp = curr_msg_->busmsg;
             busresp.dst_proc_ = src;
@@ -49,9 +48,9 @@ namespace csim
                 // cache provided data in shared mode
                 busresp.type_ = BUSSHARED;
             }
-            else
+            else if (curr_msg_->state == PROCESSING)
             {
-                assert(curr_msg_->state == PROCESSING);
+                // TODO maybe handle edge case for upgrades, not necessary for now.
                 // cache didn't provide data, memory will
                 busresp.type_ = MEMDATA;
 
@@ -66,7 +65,6 @@ namespace csim
             std::cout << "Processed " << curr_msg_->busmsg << std::endl;
             // std::cout << "Traffic count " << stats_->interconstats.traffic << std::endl;
             curr_msg_.reset();
-
         }
 
         turn_ = (turn_ + 1) % num_proc_;
