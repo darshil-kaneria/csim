@@ -22,6 +22,9 @@ namespace csim
             {
                 if (src != proc)
                 {
+                    // record interconnect traffic
+                    stats_->interconstats.traffic++;
+
                     BusMsg msg = busreq;
                     msg.dst_proc_ = proc;
                     caches_->requestFromBus(msg);
@@ -50,6 +53,9 @@ namespace csim
                 // cache didn't provide data, memory will
                 busresp.type_ = MEMDATA;
             }
+            // record interconnect traffic
+            stats_->interconstats.traffic++;
+
             caches_->replyFromBus(busresp);
             curr_msg_.reset();
         }
@@ -57,7 +63,7 @@ namespace csim
         turn_ = (turn_ + 1) % num_proc_;
     }
 
-    SnoopBus::SnoopBus(size_t num_proc, Caches *caches) : num_proc_(num_proc), caches_(caches)
+    SnoopBus::SnoopBus(size_t num_proc, Caches *caches, Stats *stats) : num_proc_(num_proc), caches_(caches), stats_(stats)
     {
         curr_msg_ = std::nullopt;
         turn_ = 0;
@@ -65,6 +71,9 @@ namespace csim
 
     void SnoopBus::requestFromCache(BusMsg busmsg)
     {
+        // record interconnect traffic
+        stats_->interconstats.traffic++;
+
         // received request from cache.
         // can be rd/wr/upg
         assert(busmsg.src_proc_ == turn_);
@@ -76,6 +85,9 @@ namespace csim
 
     void SnoopBus::replyFromCache(BusMsg busmsg)
     {
+        // record interconnect traffic
+        stats_->interconstats.traffic++;
+
         // received reply from cache.
         // can be data/shared
         assert(curr_msg_);

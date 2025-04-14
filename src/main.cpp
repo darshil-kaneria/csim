@@ -22,9 +22,11 @@ int main(int argc, char *argv[])
     CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(0);
     TraceReader tr(directory, num_procs);
 
+    Stats stats(num_procs);
+
     CPUS cpus(&tr, num_procs, nullptr);
-    Caches caches(num_procs, nullptr, &cpus, coherproto);
-    SnoopBus bus(num_procs, &caches);
+    Caches caches(num_procs, nullptr, &cpus, coherproto, &stats);
+    SnoopBus bus(num_procs, &caches, &stats);
 
     cpus.setCaches(&caches);
     caches.setBus(&bus);
@@ -35,5 +37,6 @@ int main(int argc, char *argv[])
         running = cpus.cycle();
     } while (running);
 
-    std::cout << "Cycle " << cycles << std::endl;
+    // std::cout << "Cycle " << cycles << std::endl;
+    std::cout << stats << std::endl;
 }

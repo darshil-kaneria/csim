@@ -20,6 +20,9 @@ namespace csim
             // there is a pending request from processor
             if (cache.isAHit(cache.pending_cpu_req.value()))
             {
+                // record cache hit
+                stats_->cachestats[proc].hits++;
+
                 CPUMsg cpuresp = cache.pending_cpu_req.value();
                 cpuresp.msgtype = CPUMsgType::RESPONSE;
                 cpus_->replyFromCache(cpuresp);
@@ -30,7 +33,7 @@ namespace csim
                 // check if our turn to send on bus and send bus request
                 if (snoopbus_->isCacheTurn(proc))
                 {
-
+                    // Record interconnect traffic
                     // TODO: handle upgrades
                     BusMsg busreq = BusMsg{
                         .proc_cycle_ = cycles,
@@ -85,7 +88,7 @@ namespace csim
         }
     }
 
-    Caches::Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto) : num_procs_(num_procs), snoopbus_(snoopbus), cpus_(cpus), coherproto_(coherproto)
+    Caches::Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto, Stats *stats) : num_procs_(num_procs), snoopbus_(snoopbus), cpus_(cpus), coherproto_(coherproto), stats_(stats)
     {
         caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, Line>(), .pending_cpu_req = std::nullopt, .coherproto_ = coherproto_});
     }
@@ -110,6 +113,7 @@ namespace csim
         case MESI:
             break;
         }
+
         return true;
     }
 }

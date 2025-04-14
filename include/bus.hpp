@@ -4,6 +4,7 @@
 #include <optional>
 #include <vector>
 #include <unordered_set>
+#include "statistics.hpp"
 
 namespace csim
 {
@@ -23,7 +24,7 @@ namespace csim
     class SnoopBus
     {
     public:
-        SnoopBus(size_t num_proc, Caches *caches);
+        SnoopBus(size_t num_proc, Caches *caches, Stats *stats);
         void cycle();
         void requestFromCache(BusMsg busmsg);
         void replyFromCache(BusMsg busmsg);
@@ -35,6 +36,7 @@ namespace csim
         size_t turn_;
         std::optional<CurrMsg> curr_msg_;
         Caches *caches_;
+        Stats *stats_;
     };
 
 }

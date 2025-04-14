@@ -6,6 +6,7 @@
 #include "cpu.hpp"
 #include <queue>
 #include "cpumsg.hpp"
+#include "statistics.hpp"
 
 namespace csim
 {
@@ -42,7 +43,7 @@ namespace csim
     class Caches
     {
     public:
-        Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto);
+        Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto, Stats *stats);
         void cycle();
         void requestFromProcessor(CPUMsg cpumsg);
         void requestFromBus(BusMsg busmsg);
@@ -56,6 +57,7 @@ namespace csim
         CPUS *cpus_;
         std::vector<Cache> caches_;
         CoherenceProtocol coherproto_;
+        Stats *stats_;
     };
 
 }
