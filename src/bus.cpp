@@ -12,7 +12,7 @@ namespace csim
         {
             assert(curr_msg_->state == PROCESSING);
 
-            // std::cout << "Processing " << curr_msg_->busmsg << std::endl;
+            std::cout << "Processing " << curr_msg_->busmsg << std::endl;
 
             BusMsg &busreq = curr_msg_->busmsg;
             assert(busreq.type_ == BUSREAD || busreq.type_ == BUSWRITE || busreq.type_ == BUSUPGRADE);
@@ -63,7 +63,7 @@ namespace csim
 
             caches_->replyFromBus(busresp);
 
-            // std::cout << "Processed " << curr_msg_->busmsg << std::endl;
+            std::cout << "Processed " << curr_msg_->busmsg << std::endl;
             // std::cout << "Traffic count " << stats_->interconstats.traffic << std::endl;
             curr_msg_.reset();
 
@@ -89,9 +89,6 @@ namespace csim
         assert(busmsg.type_ == BUSREAD || busmsg.type_ == BUSWRITE || busmsg.type_ == BUSUPGRADE);
         assert(!curr_msg_);
         curr_msg_ = CurrMsg{.busmsg = busmsg, .state = PROCESSING};
-
-        if(curr_msg_)
-            std::cout << "is true " << std::endl;
     }
 
     void SnoopBus::replyFromCache(BusMsg busmsg)
