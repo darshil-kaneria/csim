@@ -70,7 +70,7 @@ namespace csim
         turn_ = (turn_ + 1) % num_proc_;
     }
 
-    SnoopBus::SnoopBus(size_t num_proc, Caches *caches, Stats *stats) : num_proc_(num_proc), caches_(caches), stats_(stats)
+    SnoopBus::SnoopBus(size_t num_proc, SnoopCaches *caches, Stats *stats) : num_proc_(num_proc), caches_(caches), stats_(stats)
     {
         curr_msg_ = std::nullopt;
         turn_ = 0;
@@ -109,7 +109,7 @@ namespace csim
         }
     }
 
-    void SnoopBus::setCaches(Caches *caches)
+    void SnoopBus::setCaches(SnoopCaches *caches)
     {
         caches_ = caches;
     }

@@ -99,7 +99,7 @@ namespace csim
         os << "INS: [";
         os << " Command: " << ins.command;
         os << " Address: " << (int)ins.address;
-        os << "]";
+        os << " ]";
         return os;
     }
 }

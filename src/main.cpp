@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     Stats stats(num_procs);
 
     CPUS cpus(&tr, num_procs, nullptr);
-    Caches caches(num_procs, nullptr, &cpus, coherproto, &stats);
+    SnoopCaches caches(num_procs, nullptr, &cpus, coherproto, &stats);
     SnoopBus bus(num_procs, &caches, &stats);
 
     cpus.setCaches(&caches);

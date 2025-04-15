@@ -24,18 +24,18 @@ namespace csim
     class SnoopBus
     {
     public:
-        SnoopBus(size_t num_proc, Caches *caches, Stats *stats);
+        SnoopBus(size_t num_proc, SnoopCaches *caches, Stats *stats);
         void cycle();
         void requestFromCache(BusMsg busmsg);
         void replyFromCache(BusMsg busmsg);
-        void setCaches(Caches *caches);
+        void setCaches(SnoopCaches *caches);
         bool isCacheTurn(size_t proc);
 
     private:
         size_t num_proc_;
         size_t turn_;
         std::optional<CurrMsg> curr_msg_;
-        Caches *caches_;
+        SnoopCaches *caches_;
         Stats *stats_;
     };
 

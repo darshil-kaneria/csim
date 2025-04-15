@@ -33,13 +33,13 @@ namespace csim
     std::ostream &operator<<(std::ostream &os, const BusMsg &busmsg)
     {
         os << "BUSMSG";
-        os << "[";
+        os << " [";
         os << " Proc Cycle: " << busmsg.proc_cycle_;
         os << " Type: " << busmsg.type_;
         os << " MemReq: " << busmsg.cpureq_;
         os << " Src: " << busmsg.src_proc_;
         os << " Dst: " << busmsg.dst_proc_;
-        os << "]";
+        os << " ]";
         return os;
     }
 }

@@ -25,8 +25,8 @@ namespace csim
     std::ostream &operator<<(std::ostream &os, const CPUMsg &cpumsg)
     {
         os << "CPUMSG: [";
-        os << "Proc cycle: " << cpumsg.proc_cycle_;
-        os << "Type: " << cpumsg.msgtype;
+        os << " Proc cycle: " << cpumsg.proc_cycle_;
+        os << " Type: " << cpumsg.msgtype;
         os << " Instruction: " << cpumsg.inst_;
         os << " proc: " << cpumsg.proc_;
         os << " proc_seq: " << cpumsg.proc_seq_;

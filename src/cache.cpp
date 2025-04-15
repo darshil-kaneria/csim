@@ -5,7 +5,7 @@
 
 namespace csim
 {
-    void Caches::cycle()
+    void SnoopCaches::cycle()
     {
         // validate consistency in our cache.
 
@@ -71,7 +71,7 @@ namespace csim
         snoopbus_->cycle();
     }
 
-    void Caches::requestFromProcessor(CPUMsg cpureq)
+    void SnoopCaches::requestFromProcessor(CPUMsg cpureq)
     {
         size_t proc = cpureq.proc_;
         Cache &cache = caches_[proc];
@@ -79,7 +79,7 @@ namespace csim
         cache.pending_cpu_req = cpureq;
     }
 
-    void Caches::requestFromBus(BusMsg busmsg)
+    void SnoopCaches::requestFromBus(BusMsg busmsg)
     {
         // another processor sent a request.
         // can be rd/wr/upgr
@@ -111,7 +111,7 @@ namespace csim
         }
     }
 
-    void Caches::replyFromBus(BusMsg busmsg)
+    void SnoopCaches::replyFromBus(BusMsg busmsg)
     {
         // another processor/Memory sent a reply.
         // can be data/shared/memory.
@@ -145,22 +145,22 @@ namespace csim
         caches_[proc].pending_cpu_req.reset();
     }
 
-    Caches::Caches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto, Stats *stats) : num_procs_(num_procs), snoopbus_(snoopbus), cpus_(cpus), coherproto_(coherproto), stats_(stats)
+    SnoopCaches::SnoopCaches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto, Stats *stats) : num_procs_(num_procs), snoopbus_(snoopbus), cpus_(cpus), coherproto_(coherproto), stats_(stats)
     {
-        caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, CoherenceState>(), .pending_cpu_req = std::nullopt, .coherproto_ = coherproto_});
+        caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, CoherenceState>(), .pending_cpu_req = std::nullopt});
     }
 
-    void Caches::setBus(SnoopBus *snoopbus)
+    void SnoopCaches::setBus(SnoopBus *snoopbus)
     {
         snoopbus_ = snoopbus;
     }
 
-    void Caches::setCPUs(CPUS *cpus)
+    void SnoopCaches::setCPUs(CPUS *cpus)
     {
         cpus_ = cpus;
     }
 
-    bool Caches::isAHit(CPUMsg &cpureq, size_t proc)
+    bool SnoopCaches::isAHit(CPUMsg &cpureq, size_t proc)
     {
         // TODO: might depend on coherence protocol
         switch (coherproto_)
@@ -183,7 +183,7 @@ namespace csim
         return true;
     }
 
-    CoherenceState Caches::getCoherenceState(size_t address, size_t proc)
+    CoherenceState SnoopCaches::getCoherenceState(size_t address, size_t proc)
     {
         Cache &cache = caches_[proc];
         if (cache.lines.find(address) == cache.lines.end())
@@ -193,7 +193,7 @@ namespace csim
         return cache.lines[address];
     }
 
-    void Caches::setCoherenceState(size_t address, CoherenceState newstate, size_t proc)
+    void SnoopCaches::setCoherenceState(size_t address, CoherenceState newstate, size_t proc)
     {
         // record coherence invalidations
         if (getCoherenceState(address, proc) != INVALID && newstate == INVALID)
@@ -205,7 +205,7 @@ namespace csim
         cache.lines[address] = newstate;
     }
 
-    std::optional<BusMsg> Caches::requestFromBusMI(BusMsg &busreq, size_t proc)
+    std::optional<BusMsg> SnoopCaches::requestFromBusMI(BusMsg &busreq, size_t proc)
     {
         size_t address = busreq.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -251,7 +251,7 @@ namespace csim
         return std::nullopt;
     }
 
-    CPUMsg Caches::replyFromBusMI(BusMsg &busresp, size_t proc)
+    CPUMsg SnoopCaches::replyFromBusMI(BusMsg &busresp, size_t proc)
     {
         size_t address = busresp.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -267,13 +267,13 @@ namespace csim
         return cpuresp;
     }
 
-    bool Caches::isAHitMI(CPUMsg &cpureq, size_t proc)
+    bool SnoopCaches::isAHitMI(CPUMsg &cpureq, size_t proc)
     {
         size_t address = cpureq.inst_.address;
         CoherenceState currstate = getCoherenceState(address, proc);
         return currstate == MODIFIED;
     }
-    std::optional<BusMsg> Caches::requestFromBusMSI(BusMsg &busreq, size_t proc)
+    std::optional<BusMsg> SnoopCaches::requestFromBusMSI(BusMsg &busreq, size_t proc)
     {
         size_t address = busreq.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -355,7 +355,7 @@ namespace csim
         }
         return std::nullopt;
     }
-    CPUMsg Caches::replyFromBusMSI(BusMsg &busresp, size_t proc)
+    CPUMsg SnoopCaches::replyFromBusMSI(BusMsg &busresp, size_t proc)
     {
         size_t address = busresp.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -379,7 +379,7 @@ namespace csim
 
         return cpuresp;
     }
-    bool Caches::isAHitMSI(CPUMsg &cpureq, size_t proc)
+    bool SnoopCaches::isAHitMSI(CPUMsg &cpureq, size_t proc)
     {
         size_t address = cpureq.inst_.address;
         CoherenceState currstate = getCoherenceState(address, proc);
@@ -398,7 +398,7 @@ namespace csim
         }
         return false;
     }
-    std::optional<BusMsg> Caches::requestFromBusMESI(BusMsg &busreq, size_t proc)
+    std::optional<BusMsg> SnoopCaches::requestFromBusMESI(BusMsg &busreq, size_t proc)
     {
         size_t address = busreq.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -505,7 +505,7 @@ namespace csim
         }
         return std::nullopt;
     }
-    CPUMsg Caches::replyFromBusMESI(BusMsg &busresp, size_t proc)
+    CPUMsg SnoopCaches::replyFromBusMESI(BusMsg &busresp, size_t proc)
     {
         size_t address = busresp.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -536,7 +536,7 @@ namespace csim
 
         return cpuresp;
     }
-    bool Caches::isAHitMESI(CPUMsg &cpureq, size_t proc)
+    bool SnoopCaches::isAHitMESI(CPUMsg &cpureq, size_t proc)
     {
         size_t address = cpureq.inst_.address;
         CoherenceState currstate = getCoherenceState(address, proc);
@@ -559,7 +559,7 @@ namespace csim
             return currstate == MODIFIED;
         }
     }
-    std::optional<BusMsg> Caches::requestFromBusMOESI(BusMsg &busreq, size_t proc)
+    std::optional<BusMsg> SnoopCaches::requestFromBusMOESI(BusMsg &busreq, size_t proc)
     {
         size_t address = busreq.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -688,7 +688,7 @@ namespace csim
         }
         return std::nullopt;
     }
-    CPUMsg Caches::replyFromBusMOESI(BusMsg &busresp, size_t proc)
+    CPUMsg SnoopCaches::replyFromBusMOESI(BusMsg &busresp, size_t proc)
     {
         size_t address = busresp.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -719,7 +719,7 @@ namespace csim
 
         return cpuresp;
     }
-    bool Caches::isAHitMOESI(CPUMsg &cpureq, size_t proc)
+    bool SnoopCaches::isAHitMOESI(CPUMsg &cpureq, size_t proc)
     {
         size_t address = cpureq.inst_.address;
         CoherenceState currstate = getCoherenceState(address, proc);
@@ -742,7 +742,7 @@ namespace csim
             return currstate == MODIFIED;
         }
     }
-    std::optional<BusMsg> Caches::requestFromBusMESIF(BusMsg &busreq, size_t proc)
+    std::optional<BusMsg> SnoopCaches::requestFromBusMESIF(BusMsg &busreq, size_t proc)
     {
         size_t address = busreq.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -867,7 +867,7 @@ namespace csim
         }
         return std::nullopt;
     }
-    CPUMsg Caches::replyFromBusMESIF(BusMsg &busresp, size_t proc)
+    CPUMsg SnoopCaches::replyFromBusMESIF(BusMsg &busresp, size_t proc)
     {
         size_t address = busresp.cpureq_.inst_.address;
         CoherenceState curr_state = getCoherenceState(address, proc);
@@ -898,7 +898,7 @@ namespace csim
 
         return cpuresp;
     }
-    bool Caches::isAHitMESIF(CPUMsg &cpureq, size_t proc)
+    bool SnoopCaches::isAHitMESIF(CPUMsg &cpureq, size_t proc)
     {
         size_t address = cpureq.inst_.address;
         CoherenceState currstate = getCoherenceState(address, proc);
@@ -920,5 +920,22 @@ namespace csim
             }
             return currstate == MODIFIED;
         }
+    }
+    bool DirectoryCaches::isAHit(CPUMsg &cpureq, size_t proc)
+    {
+        return false;
+    }
+    CoherenceState DirectoryCaches::getCoherenceState(size_t address, size_t proc)
+    {
+        return CoherenceState();
+    }
+    void DirectoryCaches::setCoherenceState(size_t address, CoherenceState newstate, size_t proc)
+    {
+    }
+    void DirectoryCaches::requestFromDirectory(DirMsg dirreq, size_t proc)
+    {
+    }
+    void DirectoryCaches::replyFromDirectory(DirMsg dirresp, size_t proc)
+    {
     }
 }

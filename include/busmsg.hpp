@@ -4,7 +4,7 @@
 
 namespace csim
 {
-    class Caches;
+    class SnoopCaches;
 
     const size_t BUSDELAY = 10;
     const size_t MEMDELAY = 100;
