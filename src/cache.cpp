@@ -17,9 +17,14 @@ namespace csim
             if (!cache.pending_cpu_req)
                 continue;
 
+            if (!snoopbus_->isCacheTurn(proc))
+            {
+                continue;
+            }
             // there is a pending request from processor
             if (isAHit(cache.pending_cpu_req.value(), proc))
             {
+                std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
                 // record cache hit
                 stats_->cachestats[proc].hits++;
 
@@ -31,37 +36,35 @@ namespace csim
             else
             {
                 // check if our turn to send on bus and send bus request
-                if (snoopbus_->isCacheTurn(proc))
-                {
-                    stats_->cachestats[proc].misses++;
-                    BusMsg busreq;
-                    // Record interconnect traffic
-                    // TODO: handle upgrades, add moesi, mesif
-                    if ((coherproto_ == MESI || coherproto_ == MSI) && (cache.pending_cpu_req->inst_.command == MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == SHARED)
-                    {
-                        busreq = BusMsg{
-                            .proc_cycle_ = cycles,
-                            .type_ = BUSUPGRADE,
-                            .cpureq_ = cache.pending_cpu_req.value(),
-                            .src_proc_ = proc,
-                            .dst_proc_ = BROADCAST,
-                        };
-                        snoopbus_->requestFromCache(busreq);
-                    }
-                    else
-                    {
-                        busreq = BusMsg{
-                            .proc_cycle_ = cycles,
-                            .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE,
-                            .cpureq_ = cache.pending_cpu_req.value(),
-                            .src_proc_ = proc,
-                            .dst_proc_ = BROADCAST,
-                        };
-                        snoopbus_->requestFromCache(busreq);
-                    }
 
-                    // std::cout << proc << " sent request on bus " << busreq << std::endl;
+                stats_->cachestats[proc].misses++;
+                BusMsg busreq;
+                // Record interconnect traffic
+                // TODO: handle upgrades, add moesi, mesif
+                if ((coherproto_ == MESI || coherproto_ == MSI) && (cache.pending_cpu_req->inst_.command == MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == SHARED)
+                {
+                    busreq = BusMsg{
+                        .proc_cycle_ = cycles,
+                        .type_ = BUSUPGRADE,
+                        .cpureq_ = cache.pending_cpu_req.value(),
+                        .src_proc_ = proc,
+                        .dst_proc_ = BROADCAST,
+                    };
+                    snoopbus_->requestFromCache(busreq);
                 }
+                else
+                {
+                    busreq = BusMsg{
+                        .proc_cycle_ = cycles,
+                        .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE,
+                        .cpureq_ = cache.pending_cpu_req.value(),
+                        .src_proc_ = proc,
+                        .dst_proc_ = BROADCAST,
+                    };
+                    snoopbus_->requestFromCache(busreq);
+                }
+
+                // std::cout << proc << " sent request on bus " << busreq << std::endl;
             }
         }
 
@@ -782,6 +785,7 @@ namespace csim
             else if (curr_state == FORWARDER)
             {
                 std::cout << proc << " F->S " << address << std::endl;
+                setCoherenceState(address, SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
@@ -815,11 +819,7 @@ namespace csim
             {
                 std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, INVALID, proc);
-                BusMsg busresp = busreq;
-                busresp.dst_proc_ = busresp.src_proc_;
-                busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
-                return busresp;
+                return std::nullopt;
             }
             else if (curr_state == INVALID)
             {
@@ -914,7 +914,7 @@ namespace csim
         case MEM_STORE:
             if (currstate == EXCLUSIVE)
             {
-                std::cout << proc << " E->M " << std::endl;
+                std::cout << proc << " E->M " << address << std::endl;
                 setCoherenceState(address, MODIFIED, proc);
                 return true;
             }

@@ -17,7 +17,7 @@ namespace csim
         std::ifstream &file = files[proc];
         if (std::getline(file, line))
         {
-            // std::cout << line << std::endl;
+            // std::cout <<  proc << " " << line << std::endl;
             std::vector<std::string> tokens = split(line, ' ');
             // std::cout << tokens.size() << std::endl;
             // std::cout << tokens[0] << " " << tokens[1] << std::endl;
@@ -35,6 +35,7 @@ namespace csim
                 }
                 else if (tokens[0] == "S")
                 {
+                    // std::cout << "HERE" << std::endl;
                     ins.command = OperationType::MEM_STORE;
                 }
 
@@ -59,6 +60,7 @@ namespace csim
             if (!filereader)
             {
                 std::cerr << "no file provided for processor " << proc << " filepath:" << fullpath << std::endl;
+                exit(255);
             }
             files.push_back(std::move(filereader));
         }

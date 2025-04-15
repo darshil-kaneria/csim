@@ -17,6 +17,7 @@ namespace csim
             if (cpu.pending_req_)
             {
                 // stalling due to ongoing operation.
+                // std::cout << proc << "cpu request pending " << std::endl;
                 progress = true;
                 continue;
             }
@@ -29,12 +30,13 @@ namespace csim
             // get next instruction
             std::optional<Instruction> inst = trace_reader_->readNextLine(proc);
 
-            // std::cout << proc << " processing " << *inst << std::endl;
             // check for eof
             if (!inst)
             {
                 continue;
             }
+
+            // std::cout << proc << " processing " << *inst << std::endl;
 
             // send request to cache
             size_t seq = cpu.seq_++;

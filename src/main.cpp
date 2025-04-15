@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
 
     CoherenceProtocol coherproto = static_cast<CoherenceProtocol>(4);
 
-
     std::cout << "No of Processors: " << num_procs << std::endl;
     std::cout << "Coherence Protocol: " << coherproto << std::endl;
     TraceReader tr(directory, num_procs);

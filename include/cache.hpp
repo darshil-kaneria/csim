@@ -32,7 +32,7 @@ namespace csim
 
     struct Line
     {
-       
+
         size_t tag;
         CoherenceState coherstate;
     };
@@ -68,24 +68,24 @@ namespace csim
         CoherenceState getCoherenceState(size_t address, size_t proc);
         void setCoherenceState(size_t address, CoherenceState newstate, size_t proc);
 
-        std::optional<BusMsg> requestFromBusMI(BusMsg& busreq, size_t proc);
-        CPUMsg replyFromBusMI(BusMsg& busresp, size_t proc);
+        std::optional<BusMsg> requestFromBusMI(BusMsg &busreq, size_t proc);
+        CPUMsg replyFromBusMI(BusMsg &busresp, size_t proc);
         bool isAHitMI(CPUMsg &cpureq, size_t proc);
 
-        std::optional<BusMsg> requestFromBusMSI(BusMsg& busreq, size_t proc);
-        CPUMsg replyFromBusMSI(BusMsg& busresp, size_t proc);
+        std::optional<BusMsg> requestFromBusMSI(BusMsg &busreq, size_t proc);
+        CPUMsg replyFromBusMSI(BusMsg &busresp, size_t proc);
         bool isAHitMSI(CPUMsg &cpureq, size_t proc);
 
-        std::optional<BusMsg> requestFromBusMESI(BusMsg& busreq, size_t proc);
-        CPUMsg replyFromBusMESI(BusMsg& busresp, size_t proc);
+        std::optional<BusMsg> requestFromBusMESI(BusMsg &busreq, size_t proc);
+        CPUMsg replyFromBusMESI(BusMsg &busresp, size_t proc);
         bool isAHitMESI(CPUMsg &cpureq, size_t proc);
 
-        std::optional<BusMsg> requestFromBusMOESI(BusMsg& busreq, size_t proc);
-        CPUMsg replyFromBusMOESI(BusMsg& busresp, size_t proc);
+        std::optional<BusMsg> requestFromBusMOESI(BusMsg &busreq, size_t proc);
+        CPUMsg replyFromBusMOESI(BusMsg &busresp, size_t proc);
         bool isAHitMOESI(CPUMsg &cpureq, size_t proc);
 
-        std::optional<BusMsg> requestFromBusMESIF(BusMsg& busreq, size_t proc);
-        CPUMsg replyFromBusMESIF(BusMsg& busresp, size_t proc);
+        std::optional<BusMsg> requestFromBusMESIF(BusMsg &busreq, size_t proc);
+        CPUMsg replyFromBusMESIF(BusMsg &busresp, size_t proc);
         bool isAHitMESIF(CPUMsg &cpureq, size_t proc);
     };
 
