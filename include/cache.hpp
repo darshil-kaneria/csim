@@ -18,6 +18,7 @@ namespace csim
         SHARED,
         EXCLUSIVE,
         OWNED,
+        FORWARDER
     };
 
     enum CoherenceProtocol
@@ -25,7 +26,8 @@ namespace csim
         MI,
         MSI,
         MESI,
-        MOESI
+        MOESI,
+        MESIF
     };
 
     struct Line
@@ -81,6 +83,10 @@ namespace csim
         std::optional<BusMsg> requestFromBusMOESI(BusMsg& busreq, size_t proc);
         CPUMsg replyFromBusMOESI(BusMsg& busresp, size_t proc);
         bool isAHitMOESI(CPUMsg &cpureq, size_t proc);
+
+        std::optional<BusMsg> requestFromBusMESIF(BusMsg& busreq, size_t proc);
+        CPUMsg replyFromBusMESIF(BusMsg& busresp, size_t proc);
+        bool isAHitMESIF(CPUMsg &cpureq, size_t proc);
     };
 
 }
