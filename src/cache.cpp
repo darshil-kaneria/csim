@@ -2,6 +2,7 @@
 #include "globals.hpp"
 #include "bus.hpp"
 #include <cassert>
+#include "directory.hpp"
 
 namespace csim
 {
@@ -24,28 +25,25 @@ namespace csim
             // there is a pending request from processor
             if (isAHit(cache.pending_cpu_req.value(), proc))
             {
-                std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
+                // std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
                 // record cache hit
                 stats_->cachestats[proc].hits++;
 
                 CPUMsg cpuresp = cache.pending_cpu_req.value();
-                cpuresp.msgtype = RESPONSE;
+                cpuresp.msgtype = CPUMsgType::RESPONSE;
                 cpus_->replyFromCache(cpuresp);
                 cache.pending_cpu_req.reset();
             }
             else
             {
-                // check if our turn to send on bus and send bus request
-
                 stats_->cachestats[proc].misses++;
                 BusMsg busreq;
-                // Record interconnect traffic
-                // TODO: handle upgrades, add moesi, mesif
-                if ((coherproto_ == MESI || coherproto_ == MSI) && (cache.pending_cpu_req->inst_.command == MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == SHARED)
+
+                if ((coherproto_ == CoherenceProtocol::MESI || coherproto_ == CoherenceProtocol::MSI) && (cache.pending_cpu_req->inst_.command == OperationType::MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::SHARED)
                 {
                     busreq = BusMsg{
                         .proc_cycle_ = cycles,
-                        .type_ = BUSUPGRADE,
+                        .type_ = BusMsgType::UPGRADE,
                         .cpureq_ = cache.pending_cpu_req.value(),
                         .src_proc_ = proc,
                         .dst_proc_ = BROADCAST,
@@ -56,7 +54,7 @@ namespace csim
                 {
                     busreq = BusMsg{
                         .proc_cycle_ = cycles,
-                        .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? BusMsgType::BUSREAD : BusMsgType::BUSWRITE,
+                        .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? BusMsgType::READ : BusMsgType::WRITE,
                         .cpureq_ = cache.pending_cpu_req.value(),
                         .src_proc_ = proc,
                         .dst_proc_ = BROADCAST,
@@ -89,19 +87,19 @@ namespace csim
         std::optional<BusMsg> busresp;
         switch (coherproto_)
         {
-        case MI:
+        case CoherenceProtocol::MI:
             busresp = requestFromBusMI(busmsg, proc);
             break;
-        case MSI:
+        case CoherenceProtocol::MSI:
             busresp = requestFromBusMSI(busmsg, proc);
             break;
-        case MESI:
+        case CoherenceProtocol::MESI:
             busresp = requestFromBusMESI(busmsg, proc);
             break;
-        case MOESI:
+        case CoherenceProtocol::MOESI:
             busresp = requestFromBusMOESI(busmsg, proc);
             break;
-        case MESIF:
+        case CoherenceProtocol::MESIF:
             busresp = requestFromBusMESIF(busmsg, proc);
             break;
         }
@@ -122,19 +120,19 @@ namespace csim
         CPUMsg cpuresp;
         switch (coherproto_)
         {
-        case MI:
+        case CoherenceProtocol::MI:
             cpuresp = replyFromBusMI(busmsg, proc);
             break;
-        case MSI:
+        case CoherenceProtocol::MSI:
             cpuresp = replyFromBusMSI(busmsg, proc);
             break;
-        case MESI:
+        case CoherenceProtocol::MESI:
             cpuresp = replyFromBusMESI(busmsg, proc);
             break;
-        case MOESI:
+        case CoherenceProtocol::MOESI:
             cpuresp = replyFromBusMOESI(busmsg, proc);
             break;
-        case MESIF:
+        case CoherenceProtocol::MESIF:
             cpuresp = replyFromBusMESIF(busmsg, proc);
             break;
         }
@@ -165,17 +163,17 @@ namespace csim
         // TODO: might depend on coherence protocol
         switch (coherproto_)
         {
-        case MI:
+        case CoherenceProtocol::MI:
             return isAHitMI(cpureq, proc);
-        case MSI:
+        case CoherenceProtocol::MSI:
             return isAHitMSI(cpureq, proc);
-        case MESI:
+        case CoherenceProtocol::MESI:
             return isAHitMESI(cpureq, proc);
             break;
-        case MOESI:
+        case CoherenceProtocol::MOESI:
             return isAHitMOESI(cpureq, proc);
             break;
-        case MESIF:
+        case CoherenceProtocol::MESIF:
             return isAHitMESIF(cpureq, proc);
             break;
         }
@@ -188,7 +186,7 @@ namespace csim
         Cache &cache = caches_[proc];
         if (cache.lines.find(address) == cache.lines.end())
         {
-            return INVALID;
+            return CoherenceState::INVALID;
         }
         return cache.lines[address];
     }
@@ -196,7 +194,7 @@ namespace csim
     void SnoopCaches::setCoherenceState(size_t address, CoherenceState newstate, size_t proc)
     {
         // record coherence invalidations
-        if (getCoherenceState(address, proc) != INVALID && newstate == INVALID)
+        if (getCoherenceState(address, proc) != CoherenceState::INVALID && newstate == CoherenceState::INVALID)
         {
             stats_->cachestats[proc].coherence_evicts++;
         }
@@ -211,40 +209,40 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busreq.type_;
 
-        assert(busmsgtype == BUSREAD || busmsgtype == BUSWRITE);
-        assert(curr_state == MODIFIED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::READ || busmsgtype == BusMsgType::WRITE);
+        assert(curr_state == CoherenceState::MODIFIED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSREAD)
+        if (busmsgtype == BusMsgType::READ)
         {
-            if (curr_state == INVALID)
+            if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
-            else if (curr_state == MODIFIED)
+            else if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
         }
-        else if (busmsgtype == BUSWRITE)
+        else if (busmsgtype == BusMsgType::WRITE)
         {
-            if (curr_state == INVALID)
+            if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
-            else if (curr_state == MODIFIED)
+            else if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
         }
@@ -257,12 +255,12 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busresp.type_;
 
-        assert(busmsgtype == BUSDATA || busmsgtype == MEMDATA);
-        assert(curr_state == INVALID);
-        setCoherenceState(address, MODIFIED, proc);
+        assert(busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA);
+        assert(curr_state == CoherenceState::INVALID);
+        setCoherenceState(address, CoherenceState::MODIFIED, proc);
 
         CPUMsg cpuresp = busresp.cpureq_;
-        cpuresp.msgtype = RESPONSE;
+        cpuresp.msgtype = CPUMsgType::RESPONSE;
 
         return cpuresp;
     }
@@ -271,7 +269,7 @@ namespace csim
     {
         size_t address = cpureq.inst_.address;
         CoherenceState currstate = getCoherenceState(address, proc);
-        return currstate == MODIFIED;
+        return currstate == CoherenceState::MODIFIED;
     }
     std::optional<BusMsg> SnoopCaches::requestFromBusMSI(BusMsg &busreq, size_t proc)
     {
@@ -279,76 +277,76 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busreq.type_;
 
-        assert(busmsgtype == BUSREAD || busmsgtype == BUSWRITE || busmsgtype == BUSUPGRADE);
-        assert(curr_state == MODIFIED || curr_state == SHARED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::READ || busmsgtype == BusMsgType::WRITE || busmsgtype == BusMsgType::UPGRADE);
+        assert(curr_state == CoherenceState::MODIFIED || curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSREAD)
+        if (busmsgtype == BusMsgType::READ)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->S " << address << std::endl;
-                setCoherenceState(address, SHARED, proc);
+                setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->S " << address << std::endl;
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
         }
-        else if (busmsgtype == BUSWRITE)
+        else if (busmsgtype == BusMsgType::WRITE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
         }
-        else if (busmsgtype == BUSUPGRADE)
+        else if (busmsgtype == BusMsgType::UPGRADE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
@@ -361,21 +359,21 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busresp.type_;
 
-        assert(busmsgtype == BUSDATA || busmsgtype == MEMDATA || busmsgtype == BUSSHARED);
-        assert(curr_state == SHARED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA || busmsgtype == BusMsgType::SHARED);
+        assert(curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSDATA || busmsgtype == MEMDATA)
+        if (busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA)
         {
-            setCoherenceState(address, MODIFIED, proc);
+            setCoherenceState(address, CoherenceState::MODIFIED, proc);
         }
-        else if (busmsgtype == BUSSHARED)
+        else if (busmsgtype == BusMsgType::SHARED)
         {
-            assert(busresp.cpureq_.inst_.command == MEM_LOAD);
-            setCoherenceState(address, SHARED, proc);
+            assert(busresp.cpureq_.inst_.command == OperationType::MEM_LOAD);
+            setCoherenceState(address, CoherenceState::SHARED, proc);
         }
 
         CPUMsg cpuresp = busresp.cpureq_;
-        cpuresp.msgtype = RESPONSE;
+        cpuresp.msgtype = CPUMsgType::RESPONSE;
 
         return cpuresp;
     }
@@ -385,16 +383,16 @@ namespace csim
         CoherenceState currstate = getCoherenceState(address, proc);
         OperationType type = cpureq.inst_.command;
 
-        assert(currstate == MODIFIED || currstate == SHARED || currstate == INVALID);
-        assert(type == MEM_LOAD || type == MEM_STORE);
+        assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::SHARED || currstate == CoherenceState::INVALID);
+        assert(type == OperationType::MEM_LOAD || type == OperationType::MEM_STORE);
 
-        if (type == MEM_LOAD)
+        if (type == OperationType::MEM_LOAD)
         {
-            return currstate == MODIFIED || currstate == SHARED;
+            return currstate == CoherenceState::MODIFIED || currstate == CoherenceState::SHARED;
         }
-        else if (type == MEM_STORE)
+        else if (type == OperationType::MEM_STORE)
         {
-            return currstate == MODIFIED;
+            return currstate == CoherenceState::MODIFIED;
         }
         return false;
     }
@@ -404,101 +402,101 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busreq.type_;
 
-        assert(busmsgtype == BUSREAD || busmsgtype == BUSWRITE || busmsgtype == BUSUPGRADE);
-        assert(curr_state == MODIFIED || curr_state == EXCLUSIVE || curr_state == SHARED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::READ || busmsgtype == BusMsgType::WRITE || busmsgtype == BusMsgType::UPGRADE);
+        assert(curr_state == CoherenceState::MODIFIED || curr_state == CoherenceState::EXCLUSIVE || curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSREAD)
+        if (busmsgtype == BusMsgType::READ)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->S " << address << std::endl;
-                setCoherenceState(address, SHARED, proc);
+                setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->S " << address << std::endl;
-                setCoherenceState(address, SHARED, proc);
+                setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->S " << address << std::endl;
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
         }
-        else if (busmsgtype == BUSWRITE)
+        else if (busmsgtype == BusMsgType::WRITE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
         }
-        else if (busmsgtype == BUSUPGRADE)
+        else if (busmsgtype == BusMsgType::UPGRADE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cerr << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cerr << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
@@ -511,28 +509,28 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busresp.type_;
 
-        assert(busmsgtype == BUSDATA || busmsgtype == MEMDATA || busmsgtype == BUSSHARED);
-        assert(curr_state == SHARED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA || busmsgtype == BusMsgType::SHARED);
+        assert(curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSDATA || busmsgtype == MEMDATA)
+        if (busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA)
         {
             switch (busresp.cpureq_.inst_.command)
             {
-            case MEM_LOAD:
-                setCoherenceState(address, EXCLUSIVE, proc);
+            case OperationType::MEM_LOAD:
+                setCoherenceState(address, CoherenceState::EXCLUSIVE, proc);
                 break;
-            case MEM_STORE:
-                setCoherenceState(address, MODIFIED, proc);
+            case OperationType::MEM_STORE:
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 break;
             }
         }
-        else if (busmsgtype == BUSSHARED)
+        else if (busmsgtype == BusMsgType::SHARED)
         {
-            assert(busresp.cpureq_.inst_.command == MEM_LOAD);
-            setCoherenceState(address, SHARED, proc);
+            assert(busresp.cpureq_.inst_.command == OperationType::MEM_LOAD);
+            setCoherenceState(address, CoherenceState::SHARED, proc);
         }
         CPUMsg cpuresp = busresp.cpureq_;
-        cpuresp.msgtype = RESPONSE;
+        cpuresp.msgtype = CPUMsgType::RESPONSE;
 
         return cpuresp;
     }
@@ -542,21 +540,21 @@ namespace csim
         CoherenceState currstate = getCoherenceState(address, proc);
         OperationType type = cpureq.inst_.command;
 
-        assert(type == MEM_LOAD || type == MEM_STORE);
-        assert(currstate == MODIFIED || currstate == EXCLUSIVE || currstate == SHARED || currstate == INVALID);
+        assert(type == OperationType::MEM_LOAD || type == OperationType::MEM_STORE);
+        assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED || currstate == CoherenceState::INVALID);
 
         switch (type)
         {
-        case MEM_LOAD:
-            return currstate == MODIFIED || currstate == EXCLUSIVE || currstate == SHARED;
-        case MEM_STORE:
-            if (currstate == EXCLUSIVE)
+        case OperationType::MEM_LOAD:
+            return currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED;
+        case OperationType::MEM_STORE:
+            if (currstate == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->M " << std::endl;
-                setCoherenceState(address, MODIFIED, proc);
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
-            return currstate == MODIFIED;
+            return currstate == CoherenceState::MODIFIED;
         }
     }
     std::optional<BusMsg> SnoopCaches::requestFromBusMOESI(BusMsg &busreq, size_t proc)
@@ -565,122 +563,122 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busreq.type_;
 
-        assert(busmsgtype == BUSREAD || busmsgtype == BUSWRITE || busmsgtype == BUSUPGRADE);
-        assert(curr_state == MODIFIED || curr_state == OWNED || curr_state == EXCLUSIVE || curr_state == SHARED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::READ || busmsgtype == BusMsgType::WRITE || busmsgtype == BusMsgType::UPGRADE);
+        assert(curr_state == CoherenceState::MODIFIED || curr_state == CoherenceState::OWNED || curr_state == CoherenceState::EXCLUSIVE || curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSREAD)
+        if (busmsgtype == BusMsgType::READ)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->O " << address << std::endl;
-                setCoherenceState(address, OWNED, proc);
+                setCoherenceState(address, CoherenceState::OWNED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == OWNED)
+            else if (curr_state == CoherenceState::OWNED)
             {
                 std::cout << proc << " O->O " << address << std::endl;
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->O " << address << std::endl;
-                setCoherenceState(address, OWNED, proc);
+                setCoherenceState(address, CoherenceState::OWNED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->S " << address << std::endl;
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
         }
-        else if (busmsgtype == BUSWRITE)
+        else if (busmsgtype == BusMsgType::WRITE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == OWNED)
+            else if (curr_state == CoherenceState::OWNED)
             {
                 std::cout << proc << " O->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
         }
-        else if (busmsgtype == BUSUPGRADE)
+        else if (busmsgtype == BusMsgType::UPGRADE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cerr << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == OWNED)
+            else if (curr_state == CoherenceState::OWNED)
             {
                 std::cout << proc << " O->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cerr << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
@@ -694,28 +692,28 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busresp.type_;
 
-        assert(busmsgtype == BUSDATA || busmsgtype == MEMDATA || busmsgtype == BUSSHARED);
-        assert(curr_state == OWNED || curr_state == SHARED || curr_state == INVALID);
+        assert(busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA || busmsgtype == BusMsgType::SHARED);
+        assert(curr_state == CoherenceState::OWNED || curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
 
-        if (busmsgtype == BUSDATA || busmsgtype == MEMDATA)
+        if (busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA)
         {
             switch (busresp.cpureq_.inst_.command)
             {
-            case MEM_LOAD:
-                setCoherenceState(address, EXCLUSIVE, proc);
+            case OperationType::MEM_LOAD:
+                setCoherenceState(address, CoherenceState::EXCLUSIVE, proc);
                 break;
-            case MEM_STORE:
-                setCoherenceState(address, MODIFIED, proc);
+            case OperationType::MEM_STORE:
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 break;
             }
         }
-        else if (busmsgtype == BUSSHARED)
+        else if (busmsgtype == BusMsgType::SHARED)
         {
-            assert(busresp.cpureq_.inst_.command == MEM_LOAD);
-            setCoherenceState(address, SHARED, proc);
+            assert(busresp.cpureq_.inst_.command == OperationType::MEM_LOAD);
+            setCoherenceState(address, CoherenceState::SHARED, proc);
         }
         CPUMsg cpuresp = busresp.cpureq_;
-        cpuresp.msgtype = RESPONSE;
+        cpuresp.msgtype = CPUMsgType::RESPONSE;
 
         return cpuresp;
     }
@@ -725,21 +723,21 @@ namespace csim
         CoherenceState currstate = getCoherenceState(address, proc);
         OperationType type = cpureq.inst_.command;
 
-        assert(type == MEM_LOAD || type == MEM_STORE);
-        assert(currstate == MODIFIED || currstate == OWNED || currstate == EXCLUSIVE || currstate == SHARED || currstate == INVALID);
+        assert(type == OperationType::MEM_LOAD || type == OperationType::MEM_STORE);
+        assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::OWNED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED || currstate == CoherenceState::INVALID);
 
         switch (type)
         {
-        case MEM_LOAD:
-            return currstate == MODIFIED || currstate == OWNED || currstate == EXCLUSIVE || currstate == SHARED;
-        case MEM_STORE:
-            if (currstate == EXCLUSIVE)
+        case OperationType::MEM_LOAD:
+            return currstate == CoherenceState::MODIFIED || currstate == CoherenceState::OWNED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED;
+        case OperationType::MEM_STORE:
+            if (currstate == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->M " << std::endl;
-                setCoherenceState(address, MODIFIED, proc);
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
-            return currstate == MODIFIED;
+            return currstate == CoherenceState::MODIFIED;
         }
     }
     std::optional<BusMsg> SnoopCaches::requestFromBusMESIF(BusMsg &busreq, size_t proc)
@@ -748,120 +746,120 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busreq.type_;
 
-        assert(busmsgtype == BUSREAD || busmsgtype == BUSWRITE || busmsgtype == BUSUPGRADE);
-        assert(curr_state == MODIFIED || curr_state == EXCLUSIVE || curr_state == SHARED || curr_state == INVALID || curr_state == FORWARDER);
+        assert(busmsgtype == BusMsgType::READ || busmsgtype == BusMsgType::WRITE || busmsgtype == BusMsgType::UPGRADE);
+        assert(curr_state == CoherenceState::MODIFIED || curr_state == CoherenceState::EXCLUSIVE || curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID || curr_state == CoherenceState::FORWARDER);
 
-        if (busmsgtype == BUSREAD)
+        if (busmsgtype == BusMsgType::READ)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->S " << address << std::endl;
-                setCoherenceState(address, SHARED, proc);
+                setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->S " << address << std::endl;
-                setCoherenceState(address, SHARED, proc);
+                setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->S " << address << std::endl;
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
-            else if (curr_state == FORWARDER)
+            else if (curr_state == CoherenceState::FORWARDER)
             {
                 std::cout << proc << " F->S " << address << std::endl;
-                setCoherenceState(address, SHARED, proc);
+                setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
                 return busresp;
             }
         }
-        else if (busmsgtype == BUSWRITE)
+        else if (busmsgtype == BusMsgType::WRITE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cout << proc << " M->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
-            else if (curr_state == FORWARDER)
+            else if (curr_state == CoherenceState::FORWARDER)
             {
                 std::cout << proc << " F->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
                 return busresp;
             }
         }
-        else if (busmsgtype == BUSUPGRADE)
+        else if (busmsgtype == BusMsgType::UPGRADE)
         {
-            if (curr_state == MODIFIED)
+            if (curr_state == CoherenceState::MODIFIED)
             {
                 std::cerr << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == EXCLUSIVE)
+            else if (curr_state == CoherenceState::EXCLUSIVE)
             {
                 std::cerr << "something is broken" << std::endl;
                 assert(false);
             }
-            else if (curr_state == SHARED)
+            else if (curr_state == CoherenceState::SHARED)
             {
                 std::cout << proc << " S->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
-            else if (curr_state == INVALID)
+            else if (curr_state == CoherenceState::INVALID)
             {
                 return std::nullopt;
             }
-            else if (curr_state == FORWARDER)
+            else if (curr_state == CoherenceState::FORWARDER)
             {
                 std::cout << proc << " F->I " << address << std::endl;
-                setCoherenceState(address, INVALID, proc);
+                setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
         }
@@ -873,28 +871,28 @@ namespace csim
         CoherenceState curr_state = getCoherenceState(address, proc);
         BusMsgType busmsgtype = busresp.type_;
 
-        assert(busmsgtype == BUSDATA || busmsgtype == MEMDATA || busmsgtype == BUSSHARED);
-        assert(curr_state == SHARED || curr_state == INVALID || curr_state == FORWARDER);
+        assert(busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA || busmsgtype == BusMsgType::SHARED);
+        assert(curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID || curr_state == CoherenceState::FORWARDER);
 
-        if (busmsgtype == BUSDATA || busmsgtype == MEMDATA)
+        if (busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA)
         {
             switch (busresp.cpureq_.inst_.command)
             {
-            case MEM_LOAD:
-                setCoherenceState(address, EXCLUSIVE, proc);
+            case OperationType::MEM_LOAD:
+                setCoherenceState(address, CoherenceState::EXCLUSIVE, proc);
                 break;
-            case MEM_STORE:
-                setCoherenceState(address, MODIFIED, proc);
+            case OperationType::MEM_STORE:
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 break;
             }
         }
-        else if (busmsgtype == BUSSHARED)
+        else if (busmsgtype == BusMsgType::SHARED)
         {
-            assert(busresp.cpureq_.inst_.command == MEM_LOAD);
-            setCoherenceState(address, FORWARDER, proc);
+            assert(busresp.cpureq_.inst_.command == OperationType::MEM_LOAD);
+            setCoherenceState(address, CoherenceState::FORWARDER, proc);
         }
         CPUMsg cpuresp = busresp.cpureq_;
-        cpuresp.msgtype = RESPONSE;
+        cpuresp.msgtype = CPUMsgType::RESPONSE;
 
         return cpuresp;
     }
@@ -904,38 +902,249 @@ namespace csim
         CoherenceState currstate = getCoherenceState(address, proc);
         OperationType type = cpureq.inst_.command;
 
-        assert(type == MEM_LOAD || type == MEM_STORE);
-        assert(currstate == MODIFIED || currstate == EXCLUSIVE || currstate == SHARED || currstate == INVALID || currstate == FORWARDER);
+        assert(type == OperationType::MEM_LOAD || type == OperationType::MEM_STORE);
+        assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED || currstate == CoherenceState::INVALID || currstate == CoherenceState::FORWARDER);
 
         switch (type)
         {
-        case MEM_LOAD:
-            return currstate == MODIFIED || currstate == EXCLUSIVE || currstate == SHARED || currstate == FORWARDER;
-        case MEM_STORE:
-            if (currstate == EXCLUSIVE)
+        case OperationType::MEM_LOAD:
+            return currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED || currstate == CoherenceState::FORWARDER;
+        case OperationType::MEM_STORE:
+            if (currstate == CoherenceState::EXCLUSIVE)
             {
                 std::cout << proc << " E->M " << address << std::endl;
-                setCoherenceState(address, MODIFIED, proc);
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
-            return currstate == MODIFIED;
+            return currstate == CoherenceState::MODIFIED;
         }
     }
+
     bool DirectoryCaches::isAHit(CPUMsg &cpureq, size_t proc)
     {
-        return false;
+        size_t address = cpureq.inst_.address;
+        CoherenceState currstate = getCoherenceState(address, proc);
+        OperationType type = cpureq.inst_.command;
+
+        assert(type == OperationType::MEM_LOAD || type == OperationType::MEM_STORE);
+        assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED || currstate == CoherenceState::INVALID);
+
+        switch (type)
+        {
+        case OperationType::MEM_LOAD:
+            return currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED;
+        case OperationType::MEM_STORE:
+            if (currstate == CoherenceState::EXCLUSIVE)
+            {
+                std::cout << proc << " E->M " << std::endl;
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
+                return true;
+            }
+            return currstate == CoherenceState::MODIFIED;
+        }
     }
+
     CoherenceState DirectoryCaches::getCoherenceState(size_t address, size_t proc)
     {
-        return CoherenceState();
+        Cache &cache = caches_[proc];
+        if (cache.lines.find(address) == cache.lines.end())
+        {
+            return CoherenceState::INVALID;
+        }
+        return cache.lines[address];
     }
+
     void DirectoryCaches::setCoherenceState(size_t address, CoherenceState newstate, size_t proc)
     {
+        // record coherence invalidations
+        if (getCoherenceState(address, proc) != CoherenceState::INVALID && newstate == CoherenceState::INVALID)
+        {
+            stats_->cachestats[proc].coherence_evicts++;
+        }
+
+        Cache &cache = caches_[proc];
+        cache.lines[address] = newstate;
     }
-    void DirectoryCaches::requestFromDirectory(DirMsg dirreq, size_t proc)
+
+    DirectoryCaches::DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats) : num_procs_(num_procs), directory_(directory), cpus_(cpus), stats_(stats)
     {
+        caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, CoherenceState>(), .pending_cpu_req = std::nullopt});
     }
-    void DirectoryCaches::replyFromDirectory(DirMsg dirresp, size_t proc)
+
+    void DirectoryCaches::cycle()
     {
+        // validate consistency in our cache.
+
+        // try to process request from processor.
+        for (size_t proc = 0; proc < num_procs_; proc++)
+        {
+            Cache &cache = caches_[proc];
+
+            if (!cache.pending_cpu_req)
+                continue;
+
+            if (isAHit(cache.pending_cpu_req.value(), proc))
+            {
+                // record cache hit
+                stats_->cachestats[proc].hits++;
+
+                CPUMsg cpuresp = cache.pending_cpu_req.value();
+                cpuresp.msgtype = CPUMsgType::RESPONSE;
+                cpus_->replyFromCache(cpuresp);
+                cache.pending_cpu_req.reset();
+            }
+            else
+            {
+                stats_->cachestats[proc].misses++;
+                DirMsg dirreq;
+
+                if (cache.pending_cpu_req->inst_.command == OperationType::MEM_STORE && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::SHARED)
+                {
+                    dirreq = DirMsg{
+                        .proc_cycle_ = cycles,
+                        .type_ = DirMsgType::UPGRADE,
+                        .cpureq_ = cache.pending_cpu_req.value(),
+                        .src_proc_ = proc,
+                        .dst_proc_ = DIRECTORY};
+                    directory_->requestFromCache(dirreq);
+                }
+                else
+                {
+                    dirreq = DirMsg{
+                        .proc_cycle_ = cycles,
+                        .type_ = (cache.pending_cpu_req->inst_.command == OperationType::MEM_LOAD) ? DirMsgType::READ : DirMsgType::WRITE,
+                        .cpureq_ = cache.pending_cpu_req.value(),
+                        .src_proc_ = proc,
+                        .dst_proc_ = DIRECTORY};
+                    directory_->requestFromCache(dirreq);
+                }
+            }
+        }
+    }
+    void DirectoryCaches::requestFromProcessor(CPUMsg cpureq)
+    {
+        size_t proc = cpureq.proc_;
+        Cache &cache = caches_[proc];
+        assert(!cache.pending_cpu_req);
+        cache.pending_cpu_req = cpureq;
+    }
+
+    void DirectoryCaches::requestFromDirectory(DirMsg dirreq)
+    {
+        size_t proc = dirreq.dst_proc_;
+        DirMsgType type = dirreq.type_;
+        size_t address = dirreq.cpureq_.inst_.address;
+
+        // request from directory only comes to downgrade to shared or invalidate.
+        assert(type == DirMsgType::SHARED || type == DirMsgType::INVALIDATE);
+
+        CoherenceState currstate = getCoherenceState(address, proc);
+        if (type == DirMsgType::SHARED)
+        {
+            assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE);
+            std::cout << proc << currstate << "-> S" << std::endl;
+            setCoherenceState(address, CoherenceState::SHARED, proc);
+        }
+        else if (type == DirMsgType::INVALIDATE)
+        {
+            assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED);
+            std::cout << proc << currstate << "-> I" << std::endl;
+            setCoherenceState(address, CoherenceState::INVALID, proc);
+        }
+    }
+    void DirectoryCaches::replyFromDirectory(DirMsg dirresp)
+    {
+        size_t proc = dirresp.dst_proc_;
+        DirMsgType type = dirresp.type_;
+        size_t address = dirresp.cpureq_.inst_.address;
+        OperationType optype = dirresp.cpureq_.inst_.command;
+
+        CoherenceState curr_state = getCoherenceState(address, proc);
+
+        assert(type == DirMsgType::DATA || type == DirMsgType::SHARED);
+        assert(curr_state == CoherenceState::SHARED || curr_state == CoherenceState::INVALID);
+
+        if (type == DirMsgType::DATA)
+        {
+            switch (optype)
+            {
+            case OperationType::MEM_LOAD:
+                setCoherenceState(address, CoherenceState::EXCLUSIVE, proc);
+                break;
+            case OperationType::MEM_STORE:
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
+                break;
+            }
+        }
+        else if (type == DirMsgType::SHARED)
+        {
+            assert(optype == OperationType::MEM_LOAD);
+            setCoherenceState(address, CoherenceState::SHARED, proc);
+        }
+
+        CPUMsg cpuresp = dirresp.cpureq_;
+        cpuresp.msgtype = CPUMsgType::RESPONSE;
+
+        assert(caches_[proc].pending_cpu_req);
+        assert(caches_[proc].pending_cpu_req.value() == cpuresp);
+
+        cpus_->replyFromCache(std::move(cpuresp));
+        caches_[proc].pending_cpu_req.reset();
+    }
+
+    void DirectoryCaches::setDirectory(Directory *directory)
+    {
+        directory_ = directory;
+    }
+    void DirectoryCaches::setCPUs(CPUS *cpus)
+    {
+        cpus_ = cpus;
+    }
+    std::ostream &operator<<(std::ostream &os, const CoherenceState &state)
+    {
+        switch (state)
+        {
+        case CoherenceState::MODIFIED:
+            os << "M";
+            break;
+        case CoherenceState::INVALID:
+            os << "I";
+            break;
+        case CoherenceState::SHARED:
+            os << "S";
+            break;
+        case CoherenceState::EXCLUSIVE:
+            os << "E";
+            break;
+        case CoherenceState::OWNED:
+            os << "O";
+            break;
+        case CoherenceState::FORWARDER:
+            os << "F";
+            break;
+        }
+        return os;
+    }
+    std::ostream &operator<<(std::ostream &os, const CoherenceProtocol &protocol)
+    {
+        switch (protocol)
+        {
+        case CoherenceProtocol::MI:
+            os << "MI";
+            break;
+        case CoherenceProtocol::MSI:
+            os << "MSI";
+            break;
+        case CoherenceProtocol::MESI:
+            os << "MESI";
+            break;
+        case CoherenceProtocol::MOESI:
+            os << "MOESI";
+            break;
+        case CoherenceProtocol::MESIF:
+            os << "MESIF";
+            break;
+        }
+        return os;
     }
 }

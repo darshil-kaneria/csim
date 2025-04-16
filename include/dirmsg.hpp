@@ -1,17 +1,21 @@
+#pragma once
 
 #include <cstdint>
 #include "cpumsg.hpp"
 
 namespace csim
 {
-    enum DirMsgType
+
+    const size_t DIRECTORY = 3000;
+
+    enum class DirMsgType
     {
-        DIRREAD,
-        DIRWRITE,
-        DIRUPGRADE,
-        DIRDATA,
-        DIRSHARED,
-        DIRINVALIDATE,
+        READ,
+        WRITE,
+        UPGRADE,
+        DATA,
+        SHARED,
+        INVALIDATE,
     };
 
     struct DirMsg

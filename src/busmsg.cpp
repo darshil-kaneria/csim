@@ -8,22 +8,22 @@ namespace csim
     {
         switch (busmsgtype)
         {
-        case BUSREAD:
-            os << "BUSREAD";
+        case BusMsgType::READ:
+            os << "READ";
             break;
-        case BUSWRITE:
-            os << "BUSWRITE";
+        case BusMsgType::WRITE:
+            os << "WRITE";
             break;
-        case BUSDATA:
-            os << "BUSDATA";
+        case BusMsgType::DATA:
+            os << "DATA";
             break;
-        case BUSSHARED:
-            os << "BUSSHARED";
+        case BusMsgType::SHARED:
+            os << "SHARED";
             break;
-        case BUSUPGRADE:
-            os << "BUSUPGRADE";
+        case BusMsgType::UPGRADE:
+            os << "UPGRADE";
             break;
-        case MEMDATA:
+        case BusMsgType::MEMDATA:
             os << "MEMDATA";
             break;
         }

@@ -6,7 +6,7 @@ namespace csim
 {
     // TODO: Ensure to get the block address.
 
-    enum OperationType
+    enum class OperationType
     {
         MEM_LOAD,
         MEM_STORE

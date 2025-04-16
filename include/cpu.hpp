@@ -27,7 +27,7 @@ namespace csim
     private:
         TraceReader *trace_reader_; // Trace reader to read traces
         size_t num_procs_;          // Number of processes.
-        SnoopCaches *caches_;       // The caches in the system.
+        SnoopCaches *caches_;       // The snoop caches in the system.
         std::vector<CPU> cpus;
     };
 

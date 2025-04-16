@@ -11,13 +11,13 @@ namespace csim
 
     const size_t BROADCAST = 1000;
 
-    enum BusMsgType
+    enum class BusMsgType
     {
-        BUSREAD,
-        BUSWRITE,
-        BUSUPGRADE,
-        BUSDATA,
-        BUSSHARED,
+        READ,
+        WRITE,
+        UPGRADE,
+        DATA,
+        SHARED,
         MEMDATA
     };
 

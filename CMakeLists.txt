@@ -28,6 +28,9 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/cpumsg.cpp
     ${PROJECT_SOURCE_DIR}/src/globals.cpp
     ${PROJECT_SOURCE_DIR}/src/statistics.cpp
+    ${PROJECT_SOURCE_DIR}/src/directory.cpp
+    ${PROJECT_SOURCE_DIR}/src/dirmsg.cpp
+
 )
 
 # Add executable

@@ -8,7 +8,7 @@
 
 namespace csim
 {
-    enum State
+    enum class BusState
     {
         PROCESSING,
         CACHEDATA,
@@ -18,7 +18,7 @@ namespace csim
     struct CurrMsg
     {
         BusMsg busmsg;
-        State state;
+        BusState state;
     };
 
     class SnoopBus

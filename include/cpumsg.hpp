@@ -7,7 +7,7 @@ namespace csim
 {
     struct CPU;
 
-    enum CPUMsgType
+    enum class CPUMsgType
     {
         REQUEST,
         RESPONSE,

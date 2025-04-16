@@ -8,23 +8,23 @@ namespace csim
 
         switch (dirmsgtype)
         {
-        case DIRREAD:
-            os << "DIRREAD";
+        case DirMsgType::READ:
+            os << "READ";
             break;
-        case DIRWRITE:
-            os << "DIRWRITE";
+        case DirMsgType::WRITE:
+            os << "WRITE";
             break;
-        case DIRUPGRADE:
-            os << "DIRUPGRADE";
+        case DirMsgType::UPGRADE:
+            os << "UPGRADE";
             break;
-        case DIRDATA:
-            os << "DIRDATA";
+        case DirMsgType::DATA:
+            os << "DATA";
             break;
-        case DIRSHARED:
-            os << "DIRSHARED";
+        case DirMsgType::SHARED:
+            os << "SHARED";
             break;
-        case DIRINVALIDATE:
-            os << "DIRINVALIDATE";
+        case DirMsgType::INVALIDATE:
+            os << "INVALIDATE";
             break;
         }
         return os;

@@ -10,12 +10,12 @@ namespace csim
         // process a request from bus.
         if (curr_msg_)
         {
-            assert(curr_msg_->state == PROCESSING);
+            assert(curr_msg_->state == BusState::PROCESSING);
 
             std::cout << "Processing " << curr_msg_->busmsg << std::endl;
 
             BusMsg &busreq = curr_msg_->busmsg;
-            assert(busreq.type_ == BUSREAD || busreq.type_ == BUSWRITE || busreq.type_ == BUSUPGRADE);
+            assert(busreq.type_ == BusMsgType::READ || busreq.type_ == BusMsgType::WRITE || busreq.type_ == BusMsgType::UPGRADE);
 
             // send to all processors except source
             size_t src = busreq.src_proc_;
@@ -38,21 +38,21 @@ namespace csim
             busresp = curr_msg_->busmsg;
             busresp.dst_proc_ = src;
 
-            if (curr_msg_->state == CACHEDATA)
+            if (curr_msg_->state == BusState::CACHEDATA)
             {
                 // cache flushed data
-                busresp.type_ = BUSDATA;
+                busresp.type_ = BusMsgType::DATA;
             }
-            else if (curr_msg_->state == CACHESHARED)
+            else if (curr_msg_->state == BusState::CACHESHARED)
             {
                 // cache provided data in shared mode
-                busresp.type_ = BUSSHARED;
+                busresp.type_ = BusMsgType::SHARED;
             }
-            else if (curr_msg_->state == PROCESSING)
+            else if (curr_msg_->state == BusState::PROCESSING)
             {
                 // TODO maybe handle edge case for upgrades, not necessary for now.
                 // cache didn't provide data, memory will
-                busresp.type_ = MEMDATA;
+                busresp.type_ = BusMsgType::MEMDATA;
 
                 // simulate traffic for memory providing data.
                 stats_->interconstats.traffic++;
@@ -84,9 +84,9 @@ namespace csim
         // received request from cache.
         // can be rd/wr/upg
         assert(busmsg.src_proc_ == turn_);
-        assert(busmsg.type_ == BUSREAD || busmsg.type_ == BUSWRITE || busmsg.type_ == BUSUPGRADE);
+        assert(busmsg.type_ == BusMsgType::READ || busmsg.type_ == BusMsgType::WRITE || busmsg.type_ == BusMsgType::UPGRADE);
         assert(!curr_msg_);
-        curr_msg_ = CurrMsg{.busmsg = busmsg, .state = PROCESSING};
+        curr_msg_ = CurrMsg{.busmsg = busmsg, .state = BusState::PROCESSING};
     }
 
     void SnoopBus::replyFromCache(BusMsg busmsg)
@@ -97,15 +97,15 @@ namespace csim
         // received reply from cache.
         // can be data/shared
         assert(curr_msg_);
-        assert(busmsg.type_ == BUSDATA || busmsg.type_ == BUSSHARED);
+        assert(busmsg.type_ == BusMsgType::DATA || busmsg.type_ == BusMsgType::SHARED);
 
-        if (busmsg.type_ == BUSDATA)
+        if (busmsg.type_ == BusMsgType::DATA)
         {
-            curr_msg_->state = CACHEDATA;
+            curr_msg_->state = BusState::CACHEDATA;
         }
         else
         {
-            curr_msg_->state = CACHESHARED;
+            curr_msg_->state = BusState::CACHESHARED;
         }
     }
 

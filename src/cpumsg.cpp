@@ -12,10 +12,10 @@ namespace csim
     {
         switch (req)
         {
-        case REQUEST:
+        case CPUMsgType::REQUEST:
             os << "REQEUST";
             break;
-        case RESPONSE:
+        case CPUMsgType::RESPONSE:
             os << "RESPONSE";
             break;
         }

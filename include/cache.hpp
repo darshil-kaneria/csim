@@ -13,7 +13,9 @@
 namespace csim
 {
     class SnoopBus;
-    enum CoherenceState
+    class Directory;
+
+    enum class CoherenceState
     {
         MODIFIED,
         INVALID,
@@ -23,7 +25,9 @@ namespace csim
         FORWARDER
     };
 
-    enum CoherenceProtocol
+    std::ostream& operator<<(std::ostream& os, const CoherenceState& state);
+
+    enum class CoherenceProtocol
     {
         MI,
         MSI,
@@ -31,6 +35,7 @@ namespace csim
         MOESI,
         MESIF
     };
+    std::ostream& operator<<(std::ostream& os, const CoherenceProtocol& state);
 
     struct Line
     {
@@ -106,19 +111,25 @@ namespace csim
 
     class DirectoryCaches
     {
+    public:
+        DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats);
+        void cycle();
+        void requestFromProcessor(CPUMsg cpureq);
+        void requestFromDirectory(DirMsg dirreq);
+        void replyFromDirectory(DirMsg dirresp);
+        void setDirectory(Directory *directory);
+        void setCPUs(CPUS *cpus);
 
     private:
         size_t num_procs_;
         CPUS *cpus_;
+        Directory *directory_;
         std::vector<Cache> caches_;
-        Stats *stats;
+        Stats *stats_;
 
         bool isAHit(CPUMsg &cpureq, size_t proc);
         CoherenceState getCoherenceState(size_t address, size_t proc);
         void setCoherenceState(size_t address, CoherenceState newstate, size_t proc);
-
-        void requestFromDirectory(DirMsg dirreq, size_t proc);
-        void replyFromDirectory(DirMsg dirresp, size_t proc);
     };
 
 }
