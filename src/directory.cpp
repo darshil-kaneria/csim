@@ -16,7 +16,8 @@ namespace csim
         size_t src = req.src_proc_;
         size_t address = req.cpureq_.inst_.address;
 
-        assert(type == DirMsgType::DATA || type == DirMsgType::WRITE || type == DirMsgType::UPGRADE);
+        // std::cout << type << std::endl;
+        assert(type == DirMsgType::READ || type == DirMsgType::WRITE || type == DirMsgType::UPGRADE);
 
         DirState currstate = GetState(address);
 

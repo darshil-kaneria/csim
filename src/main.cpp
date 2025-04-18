@@ -6,6 +6,7 @@
 #include "cache.hpp"
 #include <iostream>
 #include <fstream>
+#include "directory.hpp"
 #include "globals.hpp"
 
 using namespace csim;
@@ -27,12 +28,21 @@ int main(int argc, char *argv[])
     Stats stats(num_procs);
 
     CPUS cpus(&tr, num_procs, nullptr);
-    SnoopCaches caches(num_procs, nullptr, &cpus, coherproto, &stats);
-    SnoopBus bus(num_procs, &caches, &stats);
 
-    cpus.setCaches(&caches);
-    caches.setBus(&bus);
 
+    SnoopCaches snoopcaches(num_procs, nullptr, &cpus, coherproto, &stats);
+    SnoopBus bus(num_procs, &snoopcaches, &stats);
+    snoopcaches.setBus(&bus);
+
+
+    DirectoryCaches dircaches(num_procs, nullptr, &cpus, &stats);
+    Directory dir(num_procs, &dircaches, &stats);
+    dircaches.setDirectory(&dir);
+
+
+    cpus.setCaches(&dircaches);
+
+    
     bool running = false;
     do
     {

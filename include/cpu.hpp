@@ -8,6 +8,7 @@ namespace csim
 {
     class SnoopCaches;
     struct TraceReader;
+    class DirectoryCaches;
 
     struct CPU
     {
@@ -18,16 +19,16 @@ namespace csim
     class CPUS
     {
     public:
-        CPUS(TraceReader *trace_reader, size_t num_procs, SnoopCaches *cache);
+        CPUS(TraceReader *trace_reader, size_t num_procs, DirectoryCaches* cache);
         bool cycle();
 
         void replyFromCache(CPUMsg cpumsg);
-        void setCaches(SnoopCaches *caches);
+        void setCaches(DirectoryCaches*caches);
 
     private:
         TraceReader *trace_reader_; // Trace reader to read traces
         size_t num_procs_;          // Number of processes.
-        SnoopCaches *caches_;       // The snoop caches in the system.
+        DirectoryCaches*caches_;       // The snoop caches in the system.
         std::vector<CPU> cpus;
     };
 
