@@ -164,7 +164,7 @@ namespace csim
             case DirState::EXCLUSIVE:
             {
                 assert(directory_[address].owner.has_value());
-                assert(directory_[address].sharers.empty() == 0);
+                assert(directory_[address].sharers.empty());
 
                 // invalidate current owner
                 size_t currowner = directory_[address].owner.value();
