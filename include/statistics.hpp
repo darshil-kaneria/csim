@@ -9,15 +9,13 @@ namespace csim
     {
         size_t hits;
         size_t misses;
-        size_t compulsory_misses;
-        size_t capacity_evicts;
-        size_t conflict_evicts;
-        size_t coherence_evicts;
+        size_t evictions;
     };
 
     struct InterconnectStats
     {
         size_t traffic;
+        size_t data_traffic;
     };
 
     struct Stats

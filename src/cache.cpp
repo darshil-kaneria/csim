@@ -8,8 +8,6 @@ namespace csim
 {
     void SnoopCaches::cycle()
     {
-        // validate consistency in our cache.
-
         // try to process request from processor.
         for (size_t proc = 0; proc < num_procs_; proc++)
         {
@@ -39,7 +37,7 @@ namespace csim
                 stats_->cachestats[proc].misses++;
                 BusMsg busreq;
 
-                if ((coherproto_ == CoherenceProtocol::MESI || coherproto_ == CoherenceProtocol::MSI) && (cache.pending_cpu_req->inst_.command == OperationType::MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::SHARED)
+                if ((coherproto_ == CoherenceProtocol::MESIF || coherproto_ == CoherenceProtocol::MOESI || coherproto_ == CoherenceProtocol::MESI || coherproto_ == CoherenceProtocol::MSI) && (cache.pending_cpu_req->inst_.command == OperationType::MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::SHARED)
                 {
                     busreq = BusMsg{
                         .proc_cycle_ = cycles,
@@ -169,13 +167,10 @@ namespace csim
             return isAHitMSI(cpureq, proc);
         case CoherenceProtocol::MESI:
             return isAHitMESI(cpureq, proc);
-            break;
         case CoherenceProtocol::MOESI:
             return isAHitMOESI(cpureq, proc);
-            break;
         case CoherenceProtocol::MESIF:
             return isAHitMESIF(cpureq, proc);
-            break;
         }
 
         return true;
@@ -196,7 +191,7 @@ namespace csim
         // record coherence invalidations
         if (getCoherenceState(address, proc) != CoherenceState::INVALID && newstate == CoherenceState::INVALID)
         {
-            stats_->cachestats[proc].coherence_evicts++;
+            stats_->cachestats[proc].evictions++;
         }
 
         Cache &cache = caches_[proc];
@@ -959,7 +954,7 @@ namespace csim
         // record coherence invalidations
         if (getCoherenceState(address, proc) != CoherenceState::INVALID && newstate == CoherenceState::INVALID)
         {
-            stats_->cachestats[proc].coherence_evicts++;
+            stats_->cachestats[proc].evictions++;
         }
 
         Cache &cache = caches_[proc];

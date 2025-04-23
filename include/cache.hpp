@@ -54,13 +54,6 @@ namespace csim
     // This is the cache class
     struct Cache
     {
-        // TODO: maybe make cache better.
-        size_t cachesize;
-        size_t blocksize;
-        size_t associativity;
-        size_t num_sets;
-        std::unordered_map<size_t, LRUSet> sets;
-
         std::unordered_map<size_t, CoherenceState> lines;
         std::optional<CPUMsg> pending_cpu_req;
     };

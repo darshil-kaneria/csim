@@ -6,14 +6,12 @@ namespace csim
 {
     class SnoopCaches;
 
-    const size_t BUSDELAY = 10;
-    const size_t MEMDELAY = 100;
 
     const size_t BROADCAST = 1000;
 
     enum class BusMsgType
     {
-        READ,
+        READ, 
         WRITE,
         UPGRADE,
         DATA,
