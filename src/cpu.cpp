@@ -69,12 +69,12 @@ namespace csim
         cpu.pending_req_.reset();
     }
 
-    void CPUS::setCaches(DirectoryCaches *caches)
+    void CPUS::setCaches(Caches *caches)
     {
         caches_ = caches;
     }
 
-    CPUS::CPUS(TraceReader *trace_reader, size_t num_procs, DirectoryCaches *caches) : trace_reader_(trace_reader), num_procs_(num_procs), caches_(caches)
+    CPUS::CPUS(TraceReader *trace_reader, size_t num_procs, Caches *caches) : trace_reader_(trace_reader), num_procs_(num_procs), caches_(caches)
     {
         cpus = std::vector(num_procs_, CPU{.seq_ = 0, .pending_req_ = std::nullopt});
     }

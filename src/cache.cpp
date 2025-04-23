@@ -1142,4 +1142,18 @@ namespace csim
         }
         return os;
     }
+    
+    std::ostream &operator<<(std::ostream &os, const CoherenceType &type)
+    {
+        switch (type)
+        {
+        case CoherenceType::DIRECTORY:
+            os << "DIRECTORY";
+            break;
+        case CoherenceType::SNOOP:
+            os << "SNOOP";
+            break;
+        }
+        return os;
+    }
 }

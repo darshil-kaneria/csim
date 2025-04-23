@@ -17,8 +17,9 @@ namespace csim
 
         os << "INTERCONNECT" << "\n";
         os << "TRAFFIC:\t" << stats.interconstats.traffic << "\n";
-        os << "DATA TRAFFIC:\t" << stats.interconstats.data_traffic << "\n";
-        os << "NON DATA TRAFFIC:\t" << stats.interconstats.traffic - stats.interconstats.data_traffic << "\n";
+        os << "CACHE CONTROL TRAFFIC:\t" << stats.interconstats.cache_control_traffic << "\n";
+        os << "CACHE DATA TRAFFIC:\t" << stats.interconstats.cache_data_traffic << "\n";
+        os << "MEMORY DATA TRAFFIC:\t" << stats.interconstats.mem_data_traffic << "\n";
         return os;
     }
 

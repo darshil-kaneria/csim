@@ -26,6 +26,7 @@ namespace csim
                 {
                     // record interconnect traffic
                     stats_->interconstats.traffic++;
+                    stats_->interconstats.cache_control_traffic++;
 
                     BusMsg msg = busreq;
                     msg.dst_proc_ = proc;
@@ -42,11 +43,17 @@ namespace csim
             {
                 // cache flushed data
                 busresp.type_ = BusMsgType::DATA;
+
+                stats_->interconstats.traffic++;
+                stats_->interconstats.cache_data_traffic++;
             }
             else if (curr_msg_->state == BusState::CACHESHARED)
             {
                 // cache provided data in shared mode
                 busresp.type_ = BusMsgType::SHARED;
+
+                stats_->interconstats.traffic++;
+                stats_->interconstats.cache_data_traffic++;
             }
             else if (curr_msg_->state == BusState::PROCESSING)
             {
@@ -55,10 +62,9 @@ namespace csim
                 busresp.type_ = BusMsgType::MEMDATA;
 
                 // simulate traffic for memory providing data.
-                stats_->interconstats.traffic++;
+                stats_->interconstats.traffic+=2;
+                stats_->interconstats.mem_data_traffic+=2;
             }
-            // record interconnect traffic
-            stats_->interconstats.traffic++;
 
             caches_->replyFromBus(busresp);
 
@@ -80,6 +86,7 @@ namespace csim
     {
         // record interconnect traffic
         stats_->interconstats.traffic++;
+        stats_->interconstats.cache_control_traffic++;
 
         // received request from cache.
         // can be rd/wr/upg
@@ -101,10 +108,12 @@ namespace csim
 
         if (busmsg.type_ == BusMsgType::DATA)
         {
+            stats_->interconstats.cache_data_traffic++;
             curr_msg_->state = BusState::CACHEDATA;
         }
         else
         {
+            stats_->interconstats.cache_data_traffic++;
             curr_msg_->state = BusState::CACHESHARED;
         }
     }

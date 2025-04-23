@@ -25,7 +25,7 @@ namespace csim
         FORWARDER
     };
 
-    std::ostream& operator<<(std::ostream& os, const CoherenceState& state);
+    std::ostream &operator<<(std::ostream &os, const CoherenceState &state);
 
     enum class CoherenceProtocol
     {
@@ -35,30 +35,29 @@ namespace csim
         MOESI,
         MESIF
     };
-    std::ostream& operator<<(std::ostream& os, const CoherenceProtocol& state);
+    std::ostream &operator<<(std::ostream &os, const CoherenceProtocol &state);
 
-    struct Line
+    enum class CoherenceType 
     {
-        size_t tag;
-        bool valid;
-        CoherenceState coherstate;
+        SNOOP,
+        DIRECTORY
     };
+    std::ostream &operator<<(std::ostream &os, const CoherenceType &type);
 
-    struct LRUSet
-    {
-        size_t num_lines;
-        std::list<Line> linelist;
-        std::unordered_map<size_t, std::list<Line>::iterator> linemap;
-    };
-
-    // This is the cache class
     struct Cache
     {
         std::unordered_map<size_t, CoherenceState> lines;
         std::optional<CPUMsg> pending_cpu_req;
     };
 
-    class SnoopCaches
+    class Caches
+    {
+    public:
+        virtual void cycle() = 0;
+        virtual void requestFromProcessor(CPUMsg cpumsg) = 0;
+    };
+
+    class SnoopCaches : public Caches
     {
     public:
         SnoopCaches(size_t num_procs, SnoopBus *snoopbus, CPUS *cpus, CoherenceProtocol coherproto, Stats *stats);
@@ -102,7 +101,7 @@ namespace csim
         bool isAHitMESIF(CPUMsg &cpureq, size_t proc);
     };
 
-    class DirectoryCaches
+    class DirectoryCaches : public Caches
     {
     public:
         DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats);

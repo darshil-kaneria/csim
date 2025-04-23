@@ -15,7 +15,9 @@ namespace csim
     struct InterconnectStats
     {
         size_t traffic;
-        size_t data_traffic;
+        size_t cache_control_traffic;
+        size_t cache_data_traffic;
+        size_t mem_data_traffic;
     };
 
     struct Stats
