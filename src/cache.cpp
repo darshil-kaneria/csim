@@ -215,7 +215,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->I " << address << std::endl;
+                // std::cout << proc << " M->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -232,7 +232,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->I " << address << std::endl;
+                // std::cout << proc << " M->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -279,7 +279,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->S " << address << std::endl;
+                // std::cout << proc << " M->S " << address << std::endl;
                 setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -289,7 +289,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->S " << address << std::endl;
+                // std::cout << proc << " S->S " << address << std::endl;
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
@@ -305,7 +305,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->I " << address << std::endl;
+                // std::cout << proc << " M->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -315,7 +315,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -332,12 +332,12 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << "something is broken" << std::endl;
+                // std::cout << "something is broken" << std::endl;
                 assert(false);
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -404,7 +404,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->S " << address << std::endl;
+                // std::cout << proc << " M->S " << address << std::endl;
                 setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -414,7 +414,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->S " << address << std::endl;
+                // std::cout << proc << " E->S " << address << std::endl;
                 setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -424,7 +424,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->S " << address << std::endl;
+                // std::cout << proc << " S->S " << address << std::endl;
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
@@ -440,7 +440,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->I " << address << std::endl;
+                // std::cout << proc << " M->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -450,7 +450,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->I " << address << std::endl;
+                // std::cout << proc << " E->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -460,7 +460,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -487,7 +487,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -545,7 +545,7 @@ namespace csim
         case OperationType::MEM_STORE:
             if (currstate == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->M " << std::endl;
+                // std::cout << proc << " E->M " << std::endl;
                 setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
@@ -565,7 +565,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->O " << address << std::endl;
+                // std::cout << proc << " M->O " << address << std::endl;
                 setCoherenceState(address, CoherenceState::OWNED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -575,7 +575,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::OWNED)
             {
-                std::cout << proc << " O->O " << address << std::endl;
+                // std::cout << proc << " O->O " << address << std::endl;
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
                 busresp.src_proc_ = proc;
@@ -584,7 +584,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->O " << address << std::endl;
+                // std::cout << proc << " E->O " << address << std::endl;
                 setCoherenceState(address, CoherenceState::OWNED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -594,7 +594,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->S " << address << std::endl;
+                // std::cout << proc << " S->S " << address << std::endl;
                 return std::nullopt;
             }
             else if (curr_state == CoherenceState::INVALID)
@@ -606,7 +606,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->I " << address << std::endl;
+                // std::cout << proc << " M->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -616,7 +616,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::OWNED)
             {
-                std::cout << proc << " O->I " << address << std::endl;
+                // std::cout << proc << " O->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -626,7 +626,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->I " << address << std::endl;
+                // std::cout << proc << " E->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -636,7 +636,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -658,7 +658,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::OWNED)
             {
-                std::cout << proc << " O->I " << address << std::endl;
+                // std::cout << proc << " O->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -669,7 +669,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -728,7 +728,7 @@ namespace csim
         case OperationType::MEM_STORE:
             if (currstate == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->M " << std::endl;
+                // std::cout << proc << " E->M " << std::endl;
                 setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
@@ -748,7 +748,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->S " << address << std::endl;
+                // std::cout << proc << " M->S " << address << std::endl;
                 setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -758,7 +758,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->S " << address << std::endl;
+                // std::cout << proc << " E->S " << address << std::endl;
                 setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -768,7 +768,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->S " << address << std::endl;
+                // std::cout << proc << " S->S " << address << std::endl;
                 return std::nullopt;
             }
             else if (curr_state == CoherenceState::INVALID)
@@ -777,7 +777,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::FORWARDER)
             {
-                std::cout << proc << " F->S " << address << std::endl;
+                // std::cout << proc << " F->S " << address << std::endl;
                 setCoherenceState(address, CoherenceState::SHARED, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -790,7 +790,7 @@ namespace csim
         {
             if (curr_state == CoherenceState::MODIFIED)
             {
-                std::cout << proc << " M->I " << address << std::endl;
+                // std::cout << proc << " M->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -800,7 +800,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->I " << address << std::endl;
+                // std::cout << proc << " E->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -810,7 +810,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -820,7 +820,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::FORWARDER)
             {
-                std::cout << proc << " F->I " << address << std::endl;
+                // std::cout << proc << " F->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 BusMsg busresp = busreq;
                 busresp.dst_proc_ = busresp.src_proc_;
@@ -843,7 +843,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::SHARED)
             {
-                std::cout << proc << " S->I " << address << std::endl;
+                // std::cout << proc << " S->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -853,7 +853,7 @@ namespace csim
             }
             else if (curr_state == CoherenceState::FORWARDER)
             {
-                std::cout << proc << " F->I " << address << std::endl;
+                // std::cout << proc << " F->I " << address << std::endl;
                 setCoherenceState(address, CoherenceState::INVALID, proc);
                 return std::nullopt;
             }
@@ -907,7 +907,7 @@ namespace csim
         case OperationType::MEM_STORE:
             if (currstate == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->M " << address << std::endl;
+                // std::cout << proc << " E->M " << address << std::endl;
                 setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
@@ -931,7 +931,7 @@ namespace csim
         case OperationType::MEM_STORE:
             if (currstate == CoherenceState::EXCLUSIVE)
             {
-                std::cout << proc << " E->M " << std::endl;
+                // std::cout << proc << " E->M " << std::endl;
                 setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
@@ -1037,13 +1037,13 @@ namespace csim
         if (type == DirMsgType::SHARED)
         {
             assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE);
-            std::cout << proc << currstate << "-> S" << std::endl;
+            // std::cout << proc << " " << currstate << "-> S" << std::endl;
             setCoherenceState(address, CoherenceState::SHARED, proc);
         }
         else if (type == DirMsgType::INVALIDATE)
         {
             assert(currstate == CoherenceState::MODIFIED || currstate == CoherenceState::EXCLUSIVE || currstate == CoherenceState::SHARED);
-            std::cout << proc << currstate << "-> I" << std::endl;
+            // std::cout << proc << " " << currstate << "-> I" << std::endl;
             setCoherenceState(address, CoherenceState::INVALID, proc);
         }
     }

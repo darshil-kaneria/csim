@@ -39,7 +39,10 @@ namespace csim
                     ins.command = OperationType::MEM_STORE;
                 }
 
-                ins.address = std::stol(tokens[1]);
+                size_t address = std::stol(tokens[1]);
+                size_t mask = ~(cache_line_size_ - 1);
+                address &= mask;
+                ins.address = address;
                 return ins;
             }
         }
@@ -47,7 +50,7 @@ namespace csim
         return std::nullopt;
     }
 
-    TraceReader::TraceReader(std::string directory, size_t num_procs) : num_procs_(num_procs), directory_(directory)
+    TraceReader::TraceReader(std::string directory, size_t num_procs, size_t cache_line_size) : num_procs_(num_procs), directory_(directory), cache_line_size_(cache_line_size)
     {
         std::filesystem::path base = "..";
         std::filesystem::path folder = directory;

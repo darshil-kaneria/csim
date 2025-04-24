@@ -12,7 +12,7 @@ namespace csim
         {
             assert(curr_msg_->state == BusState::PROCESSING);
 
-            std::cout << "Processing " << curr_msg_->busmsg << std::endl;
+            // std::cout << "Processing " << curr_msg_->busmsg << std::endl;
 
             BusMsg &busreq = curr_msg_->busmsg;
             assert(busreq.type_ == BusMsgType::READ || busreq.type_ == BusMsgType::WRITE || busreq.type_ == BusMsgType::UPGRADE);
@@ -68,7 +68,7 @@ namespace csim
 
             caches_->replyFromBus(busresp);
 
-            std::cout << "Processed " << curr_msg_->busmsg << std::endl;
+            // std::cout << "Processed " << curr_msg_->busmsg << std::endl;
             // std::cout << "Traffic count " << stats_->interconstats.traffic << std::endl;
             curr_msg_.reset();
         }

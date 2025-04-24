@@ -32,6 +32,7 @@
         "algorithm": "cpp",
         "istream": "cpp",
         "optional": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "ostream": "cpp"
     }
 }

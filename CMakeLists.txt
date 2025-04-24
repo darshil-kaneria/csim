@@ -30,7 +30,7 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/statistics.cpp
     ${PROJECT_SOURCE_DIR}/src/directory.cpp
     ${PROJECT_SOURCE_DIR}/src/dirmsg.cpp
-
+    ${PROJECT_SOURCE_DIR}/src/argparser.cpp
 )
 
 # Add executable
