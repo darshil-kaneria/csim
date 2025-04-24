@@ -91,6 +91,7 @@ def main():
         "producer_consumer",
         "multiple_writers",
         "multiple_readers",
+        "no_sharing",
         "random",
         "partial_proc_use"
     ])

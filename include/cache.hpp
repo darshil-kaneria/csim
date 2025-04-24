@@ -8,6 +8,7 @@
 #include "cpumsg.hpp"
 #include "dirmsg.hpp"
 #include "statistics.hpp"
+#include <unordered_map>
 #include <list>
 
 namespace csim

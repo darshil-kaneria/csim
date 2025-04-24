@@ -1,0 +1,32 @@
+{
+  "MI": {
+    "avg_hit_rate": 0.22429036458333332,
+    "avg_traffic": 171693.02777777778,
+    "avg_evictions": 2681.0833333333335,
+    "data_to_control_ratio": 0.03813720101479881
+  },
+  "MSI": {
+    "avg_hit_rate": 0.28900173611111113,
+    "avg_traffic": 176718.05555555556,
+    "avg_evictions": 1924.5833333333333,
+    "data_to_control_ratio": 0.23366608691193
+  },
+  "MESI": {
+    "avg_hit_rate": 0.28900173611111113,
+    "avg_traffic": 176718.05555555556,
+    "avg_evictions": 1924.5833333333333,
+    "data_to_control_ratio": 0.23366608691193
+  },
+  "MOESI": {
+    "avg_hit_rate": 0.28900173611111113,
+    "avg_traffic": 149174.27777777778,
+    "avg_evictions": 1924.5833333333333,
+    "data_to_control_ratio": 0.041083075603410464
+  },
+  "MESIF": {
+    "avg_hit_rate": 0.2890017361111112,
+    "avg_traffic": 270645.05555555556,
+    "avg_evictions": 1924.5833333333333,
+    "data_to_control_ratio": 0.021627991655890747
+  }
+}

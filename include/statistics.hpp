@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include "stddef.h"
+#include <iostream>
 
 namespace csim
 {

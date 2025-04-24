@@ -2,6 +2,7 @@
 
 #include "trace.hpp"
 #include <vector>
+#include <optional>
 #include "busmsg.hpp"
 
 namespace csim
