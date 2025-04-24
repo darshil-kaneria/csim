@@ -1,0 +1,132 @@
+import argparse
+import os
+import random
+from enum import Enum
+
+class AccessType(Enum):
+    LOAD = "L"
+    STORE = "S"
+
+class TraceGen:
+    def __init__(self, num_procs=4, cache_line_size=64, cache_size=8192, output_dir='traces', seed=42):
+        self.num_procs = num_procs
+        self.cache_line_size = cache_line_size
+        self.cache_size = cache_size
+        self.output_dir = output_dir
+        random.seed(seed)
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+    def generate_false_sharing(self, num_accesses):
+        for proc in range(self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", "w") as f:
+                base_addr = 0
+                offset = proc * 8
+                addr = base_addr + offset
+
+                for i in range(num_accesses):
+                    access_type = AccessType.LOAD if i % 2 == 0 else AccessType.STORE
+                    f.write(f"{access_type.value} {addr}\n")
+
+    def generate_no_sharing(self, num_accesses=10):     
+        for proc in range(self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
+                base_addr = proc * 1000
+                for i in range(num_accesses):
+                    addr = base_addr + (i % 10) * self.cache_line_size
+                    access_type = AccessType.LOAD if i % 3 != 1 else AccessType.STORE
+                    f.write(f"{access_type.value} {addr}\n")
+    
+    def generate_producer_consumer(self, num_accesses=10):
+        # This one for producer proc fixing it at 0 currently
+        with open(f"{self.output_dir}/0.txt", 'w') as f:
+            addr = 100
+            for i in range(num_accesses):
+                f.write(f"{AccessType.STORE.value} {addr}\n")
+                addr += self.cache_line_size
+        
+        # This for consumer procs
+        for proc in range(1, self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
+                addr = 100
+                for i in range(num_accesses):
+                    f.write(f"{AccessType.LOAD.value} {addr}\n")
+                    addr += self.cache_line_size
+
+    def generate_multiple_writers(self, num_accesses=10):
+        for proc in range(self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", "w") as f:
+                addr = 150
+                for i in range(num_accesses):
+                    access_type = AccessType.LOAD if i % 2 == 0 else AccessType.STORE
+                    f.write(f"{access_type.value} {addr}\n")
+
+    def generate_multiple_readers(self, num_accesses=10):        
+        for proc in range(self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
+                addr = 200
+                for i in range(num_accesses):
+                    f.write(f"{AccessType.LOAD.value} {addr}\n")
+                    if i % 3 == 0:
+                        addr += self.cache_line_size
+
+    def generate_random(self, num_accesses=10):        
+        addr_range = 10000
+        for proc in range(self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
+                for i in range(num_accesses):
+                    addr = random.randrange(0, addr_range, 4)
+                    access_type = random.choice([AccessType.LOAD, AccessType.STORE])
+                    f.write(f"{access_type.value} {addr}\n")
+
+    def generate_partial_proc_use(self, num_accesses=10):
+        # TODO Implement this later
+        None
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pattern', choices=[
+        "false_sharing",
+        "producer_consumer",
+        "multiple_writers",
+        "multiple_readers",
+        "random",
+        "partial_proc_use"
+    ])
+
+    parser.add_argument("--num-procs", type=int, default=4)
+    parser.add_argument("--num-accesses", type=int, default=10)
+    parser.add_argument("--output-dir", default='traces')
+    parser.add_argument("--cache-line", type=int, default=64)
+    parser.add_argument("--cache-size", type=int, default=8192)
+    parser.add_argument("--seed", type=int, default=42)
+
+    args = parser.parse_args()
+
+    generator = TraceGen(
+        num_procs=args.num_procs,
+        cache_line_size=args.cache_line,
+        cache_size=args.cache_size,
+        output_dir=args.output_dir,
+        seed=args.seed
+    )
+
+    if args.pattern == "false_sharing":
+        generator.generate_false_sharing(args.num_accesses)
+    elif args.pattern == "producer_consumer":
+        generator.generate_producer_consumer(args.num_accesses)
+    elif args.pattern == "multiple_writers":
+        generator.generate_multiple_writers(args.num_accesses)
+    elif args.pattern == "multiple_readers":
+        generator.generate_multiple_readers(args.num_accesses)
+    elif args.pattern == "no_sharing":
+        generator.generate_no_sharing(args.num_accesses)
+    elif args.pattern == "random":
+        generator.generate_random(args.num_accesses)
+    elif args.pattern == "partial_proc_use":
+        generator.generate_partial_proc_use(args.num_accesses)
+
+
+if __name__ == "__main__":
+    main()
