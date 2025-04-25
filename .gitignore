@@ -3,3 +3,4 @@ build/
 bin/
 real_life_traces/
 .vscode/
+traces_temp/

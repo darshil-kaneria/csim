@@ -34,7 +34,7 @@ def generate_traces(pattern, num_procs, num_accesses, cache_line_size=64):
     os.makedirs(parent_dir, exist_ok=True)
     
     cmd = [
-        "python", "tracegen.py",
+        "python3", "tracegen.py",
         "--pattern", pattern,
         "--num-procs", str(num_procs),
         "--num-accesses", str(num_accesses),

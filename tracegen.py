@@ -8,7 +8,7 @@ class AccessType(Enum):
     STORE = "S"
 
 class TraceGen:
-    def __init__(self, num_procs=4, cache_line_size=64, cache_size=8192, output_dir='traces', seed=42):
+    def __init__(self, num_procs=4, cache_line_size=64, cache_size=8192, output_dir='traces_temp', seed=42):
         self.num_procs = num_procs
         self.cache_line_size = cache_line_size
         self.cache_size = cache_size
@@ -113,7 +113,7 @@ def main():
 
     parser.add_argument("--num-procs", type=int, default=4)
     parser.add_argument("--num-accesses", type=int, default=10)
-    parser.add_argument("--output-dir", default='traces')
+    parser.add_argument("--output-dir", default='traces_temp')
     parser.add_argument("--cache-line", type=int, default=64)
     parser.add_argument("--cache-size", type=int, default=8192)
     parser.add_argument("--seed", type=int, default=42)
