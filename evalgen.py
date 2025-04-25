@@ -23,7 +23,7 @@ PROTOCOLS = ["MI", "MSI", "MESI", "MOESI", "MESIF"]
 COHERENCE_TYPES = ["SNOOP", "DIRECTORY"]
 ACCESS_PATTERNS = ["false_sharing", "producer_consumer", "multiple_writers", 
                   "multiple_readers", "random", "no_sharing"]
-PROCESSOR_COUNTS = [4, 8, 16, 32, 64, 128]
+PROCESSOR_COUNTS = [8, 16, 32, 64, 128]
 NUM_ACCESSES = 100
 
 RESULTS_DIR = "evaluation_results"
