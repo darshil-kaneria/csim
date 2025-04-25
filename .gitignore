@@ -2,4 +2,4 @@ build/
 .cache/
 bin/
 traces/
-.vscode/*
+.vscode/
