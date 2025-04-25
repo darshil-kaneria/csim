@@ -961,7 +961,7 @@ namespace csim
         cache.lines[address] = newstate;
     }
 
-    DirectoryCaches::DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats) : num_procs_(num_procs), directory_(directory), cpus_(cpus), stats_(stats)
+    DirectoryCaches::DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats) : num_procs_(num_procs),  cpus_(cpus), directory_(directory), stats_(stats)
     {
         caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, CoherenceState>(), .pending_cpu_req = std::nullopt});
     }

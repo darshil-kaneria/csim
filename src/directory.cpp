@@ -5,7 +5,7 @@
 namespace csim
 {
 
-    Directory::Directory(size_t num_procs, DirectoryCaches *caches, Stats *stats) : num_procs_(num_procs), caches_(caches), stats_(stats)
+    Directory::Directory(size_t num_procs, DirectoryCaches *caches, Stats *stats, bool dir_opt) : num_procs_(num_procs), caches_(caches), stats_(stats), dir_opt_(dir_opt)
     {
         directory_ = std::unordered_map<size_t, DirEntry>();
     }
@@ -35,9 +35,18 @@ namespace csim
                 caches_->replyFromDirectory(resp);
 
                 // simulate traffic
-                stats_->interconstats.traffic += (2 * 2);
-                stats_->interconstats.cache_control_traffic += (1 * 2);
-                stats_->interconstats.mem_data_traffic += (1 * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += (2 * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.mem_data_traffic += (1 * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += (2 * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.mem_data_traffic += (1 * 2);
+                }
 
                 // record that a processor now owns this line.
                 directory_[address] = DirEntry{.address = address,
@@ -60,9 +69,18 @@ namespace csim
                 caches_->replyFromDirectory(resp);
 
                 // simulate traffic
-                stats_->interconstats.traffic += (4 * 2);
-                stats_->interconstats.cache_control_traffic += (3 * 2);
-                stats_->interconstats.cache_data_traffic += (1 * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += (4 * 2);
+                    stats_->interconstats.cache_control_traffic += (3 * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += (5 * 2);
+                    stats_->interconstats.cache_control_traffic += (4 * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
 
                 // Add to list sharers
                 directory_[address].sharers.insert(src);
@@ -100,9 +118,19 @@ namespace csim
                 directory_[address].state = DirState::SHARED;
 
                 // simulate traffic
-                stats_->interconstats.traffic += (4 * 2);
-                stats_->interconstats.cache_control_traffic += (3 * 2);
-                stats_->interconstats.cache_data_traffic += (1 * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += (4 * 2);
+                    stats_->interconstats.cache_control_traffic += (3 * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += (5 * 2);
+                    stats_->interconstats.cache_control_traffic += (4 * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
+
                 break;
             }
             }
@@ -121,9 +149,18 @@ namespace csim
                 caches_->replyFromDirectory(resp);
 
                 // simulate traffic
-                stats_->interconstats.traffic += (2 * 2);
-                stats_->interconstats.cache_control_traffic += (1 * 2);
-                stats_->interconstats.mem_data_traffic += (1 * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += (2 * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.mem_data_traffic += (1 * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += (2 * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.mem_data_traffic += (1 * 2);
+                }
 
                 // record that a processor now owns this line.
                 directory_[address] = DirEntry{.address = address,
@@ -165,10 +202,20 @@ namespace csim
                 directory_[address].state = DirState::EXCLUSIVE;
 
                 // simulate traffic
-                stats_->interconstats.traffic += ((2 + (sharerscount * 2)) * 2);
-                stats_->interconstats.cache_control_traffic += (1 * 2);
-                stats_->interconstats.cache_control_traffic += ((sharerscount * 2) * 2);
-                stats_->interconstats.cache_data_traffic += (1 * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += ((2 + (sharerscount * 2)) * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.cache_control_traffic += ((sharerscount * 2) * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += ((2 + (sharerscount * 2)) * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.cache_control_traffic += ((sharerscount * 2) * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
 
                 break;
             }
@@ -200,10 +247,21 @@ namespace csim
                 directory_[address].state = DirState::EXCLUSIVE;
 
                 // simulate traffic
-                stats_->interconstats.traffic += ((2 + (1 * 2)) * 2);
-                stats_->interconstats.cache_control_traffic += (1 * 2);
-                stats_->interconstats.cache_control_traffic += ((1 * 2) * 2);
-                stats_->interconstats.cache_data_traffic += (1 * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += ((2 + (1 * 2)) * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.cache_control_traffic += ((1 * 2) * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += ((2 + (1 * 2)) * 2);
+                    stats_->interconstats.cache_control_traffic += (1 * 2);
+                    stats_->interconstats.cache_control_traffic += ((1 * 2) * 2);
+                    stats_->interconstats.cache_data_traffic += (1 * 2);
+                }
+
                 break;
             }
             }
@@ -253,8 +311,17 @@ namespace csim
                 directory_[address].state = DirState::EXCLUSIVE;
 
                 // simulate traffic
-                stats_->interconstats.traffic += ((2 + (sharerscount * 2)) * 2);
-                stats_->interconstats.cache_control_traffic += ((2 + (sharerscount * 2)) * 2);
+                if (dir_opt_)
+                {
+                    stats_->interconstats.traffic += ((2 + (sharerscount * 2)) * 2);
+                    stats_->interconstats.cache_control_traffic += ((2 + (sharerscount * 2)) * 2);
+                }
+                else
+                {
+                    stats_->interconstats.traffic += ((2 + (sharerscount * 2)) * 2);
+                    stats_->interconstats.cache_control_traffic += ((2 + (sharerscount * 2)) * 2);
+                }
+
                 break;
             }
             case DirState::EXCLUSIVE:
@@ -274,9 +341,5 @@ namespace csim
         }
 
         return directory_[address].state;
-    }
-
-    void Directory::SetState(size_t address, size_t proc, DirState newstate)
-    {
     }
 }

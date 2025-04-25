@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     else
     {
         DirectoryCaches dircaches(num_procs, nullptr, &cpus, &stats);
-        Directory dir(num_procs, &dircaches, &stats);
+        Directory dir(num_procs, &dircaches, &stats, dir_opt);
         dircaches.setDirectory(&dir);
         cpus.setCaches(&dircaches);
 

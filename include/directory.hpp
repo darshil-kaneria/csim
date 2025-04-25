@@ -28,7 +28,7 @@ namespace csim
     class Directory
     {
     public:
-        Directory(size_t num_procs, DirectoryCaches *caches, Stats *stats);
+        Directory(size_t num_procs, DirectoryCaches *caches, Stats *stats, bool dir_opt);
         void requestFromCache(DirMsg dirreq);
 
     private:
@@ -36,6 +36,7 @@ namespace csim
         std::unordered_map<size_t, DirEntry> directory_;
         DirectoryCaches *caches_;
         Stats *stats_;
+        bool dir_opt_;
         DirState GetState(size_t address);
         void SetState(size_t address, size_t proc, DirState newstate);
     };
