@@ -1,5 +1,5 @@
 build/
 .cache/
 bin/
-traces/
+real_life_traces/
 .vscode/
