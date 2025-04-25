@@ -81,8 +81,23 @@ class TraceGen:
                     f.write(f"{access_type.value} {addr}\n")
 
     def generate_partial_proc_use(self, num_accesses=10):
-        # TODO Implement this later
-        None
+        active_procs = max(1, int(self.num_procs * 0.25)) # Change this to test with different distribution of procs to be used as active
+        active_proc_indices = random.sample(range(self.num_procs), active_procs)        
+        shared_addr_base = 1000
+        
+        for proc in range(self.num_procs):
+            with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
+                if proc in active_proc_indices:
+                    for i in range(num_accesses):
+                        addr = shared_addr_base + (i % 3) * self.cache_line_size
+                        access_type = AccessType.LOAD if i % 2 == 0 else AccessType.STORE
+                        f.write(f"{access_type.value} {addr}\n")
+                # else:
+                #     private_addr_base = 5000 + proc * 1000
+                #     for i in range(num_accesses):
+                #         addr = private_addr_base + (i % 5) * self.cache_line_size
+                #         access_type = AccessType.LOAD if i % 4 != 0 else AccessType.STORE
+                #         f.write(f"{access_type.value} {addr}\n")
 
 def main():
     parser = argparse.ArgumentParser()
