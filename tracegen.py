@@ -72,7 +72,7 @@ class TraceGen:
                         addr += self.cache_line_size
 
     def generate_random(self, num_accesses=10):        
-        addr_range = 10000
+        addr_range = 512
         for proc in range(self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
                 for i in range(num_accesses):

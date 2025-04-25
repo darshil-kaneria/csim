@@ -30,11 +30,11 @@ RESULTS_DIR = "evaluation_results"
 
 # This will call the tracegen script to generate traces for each exp
 def generate_traces(pattern, num_procs, num_accesses, cache_line_size=64):
-    parent_dir = os.path.join(os.path.dirname(os.getcwd()), "traces_temp")
+    parent_dir = os.path.join(os.path.dirname(os.getcwd()), "../traces_temp")
     os.makedirs(parent_dir, exist_ok=True)
     
     cmd = [
-        "python3", "tracegen.py",
+        "python3", "../tracegen.py",
         "--pattern", pattern,
         "--num-procs", str(num_procs),
         "--num-accesses", str(num_accesses),
@@ -45,14 +45,14 @@ def generate_traces(pattern, num_procs, num_accesses, cache_line_size=64):
     print(f"Generating traces: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
-def run_mpcsim(protocol, coherence_type, num_procs, directory="traces_temp", diropt=False):
+def run_mpcsim(protocol, coherence_type, num_procs, directory="../traces_temp", diropt=False):
     cmd = [
-        "./build/mpcsim",
+        "./mpcsim",
         f"--num_procs={num_procs}",
         f"--directory={directory}",
         f"--coherproto={protocol}",
         f"--cohertype={coherence_type}",
-        f"--diropt={str(diropt).lower()}"
+        f"--diropt={str(diropt).lower()};",
     ]
     
     print(f"Running: {' '.join(cmd)}")

@@ -52,7 +52,7 @@ namespace csim
 
     TraceReader::TraceReader(std::string directory, size_t num_procs, size_t cache_line_size) : num_procs_(num_procs), directory_(directory), cache_line_size_(cache_line_size)
     {
-        std::filesystem::path base = "..";
+        std::filesystem::path base = ".";
         std::filesystem::path folder = directory;
 
         for (size_t proc = 0; proc < num_procs; proc++)
