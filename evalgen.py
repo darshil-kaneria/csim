@@ -1,3 +1,10 @@
+# TODO: Coherence_eviction: Change x-axis to workload instead of proto
+# TODO: Directory traffic: Fix to a specific number of processors
+# TODO: With and without locality tracegen
+# TODO: Change the scalability plot for directory and snooping to show better difference.
+# TODO: Instead of avg, make it more specific
+# TODO: Hit, miss, evict for each proto per workload
+
 import subprocess
 import os
 import re
@@ -23,14 +30,14 @@ PROTOCOLS = ["MI", "MSI", "MESI", "MOESI", "MESIF"]
 COHERENCE_TYPES = ["SNOOP", "DIRECTORY"]
 ACCESS_PATTERNS = ["false_sharing", "producer_consumer", "multiple_writers", 
                   "multiple_readers", "random", "no_sharing"]
-PROCESSOR_COUNTS = [8, 16, 32, 64, 128]
+PROCESSOR_COUNTS = [4, 8, 16, 32, 64, 128]
 NUM_ACCESSES = 100
 
 RESULTS_DIR = "evaluation_results"
 
 # This will call the tracegen script to generate traces for each exp
 def generate_traces(pattern, num_procs, num_accesses, cache_line_size=64):
-    parent_dir = os.path.join(os.path.dirname(os.getcwd()), "../traces_temp")
+    parent_dir = os.path.join(os.path.dirname(os.getcwd()), "build/traces_temp")
     os.makedirs(parent_dir, exist_ok=True)
     
     cmd = [
@@ -45,14 +52,14 @@ def generate_traces(pattern, num_procs, num_accesses, cache_line_size=64):
     print(f"Generating traces: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
 
-def run_mpcsim(protocol, coherence_type, num_procs, directory="../traces_temp", diropt=False):
+def run_mpcsim(protocol, coherence_type, num_procs, directory="traces_temp", diropt=False):
     cmd = [
         "./mpcsim",
         f"--num_procs={num_procs}",
         f"--directory={directory}",
         f"--coherproto={protocol}",
         f"--cohertype={coherence_type}",
-        f"--diropt={str(diropt).lower()};",
+        f"--diropt={str(diropt).lower()}",
     ]
     
     print(f"Running: {' '.join(cmd)}")
@@ -93,6 +100,8 @@ def parse_mpcsim_output(output):
             "cache_data_traffic": int(cache_data_traffic),
             "memory_data_traffic": int(mem_data_traffic)
         }
+
+        # print(match)
     
     config_pattern = r"No of Processors: (\d+)\nDirectory: (.*)\nCoherence Type: (.*)\nCoherence Protocol: (.*)\nCache Line Size: (\d+)\nCache Size: (\d+)"
     match = re.search(config_pattern, output)
@@ -110,8 +119,7 @@ def parse_mpcsim_output(output):
     
     return results
 
-# This will run the all-to-all eval
-# I was initially planning to run specific combos but this gives us results for all that we might need.
+# Run full evaluation with correct separation between SNOOP and DIRECTORY approaches
 def run_full_evaluation(output_dir=RESULTS_DIR):
     os.makedirs(output_dir, exist_ok=True)
     results = []
@@ -123,48 +131,47 @@ def run_full_evaluation(output_dir=RESULTS_DIR):
                 print(f"Failed to generate traces for {pattern} with {num_procs} processors: {e}")
                 continue
                 
-            for protocol, coherence_type in product(PROTOCOLS, COHERENCE_TYPES):
-                if protocol == "MESIF" and coherence_type == "DIRECTORY":
-                    continue
-                
-                # This is for when the directory optimization of reduction in interconnect traffic
-                #### SNOOP ###
-                if coherence_type == "DIRECTORY":
-                    for diropt in [False]: # Can add a True when done
-                        try:
-                            sim_results = run_mpcsim(protocol, coherence_type, num_procs, diropt=diropt)
-                            sim_results["access_pattern"] = pattern
-                            sim_results["diropt"] = diropt
-                            results.append(sim_results)
-                            
-                            with open(os.path.join(output_dir, "raw_results_incremental.json"), "w") as f:
-                                json.dump(results, f, indent=2)
-                        except Exception as e:
-                            config = {
-                                "protocol": protocol,
-                                "coherence_type": coherence_type,
-                                "num_procs": num_procs,
-                                "pattern": pattern,
-                                "diropt": diropt
-                            }
-                #### DIRECTORY ####
-                else:
-                    try:
-                        sim_results = run_mpcsim(protocol, coherence_type, num_procs)
-                        sim_results["access_pattern"] = pattern
-                        sim_results["diropt"] = False
-                        results.append(sim_results)
-                        
-                        with open(os.path.join(output_dir, "raw_results_incremental.json"), "w") as f:
-                            json.dump(results, f, indent=2)
-                    except Exception as e:
-                        config = {
-                            "protocol": protocol,
-                            "coherence_type": coherence_type,
-                            "num_procs": num_procs,
-                            "pattern": pattern,
-                            "diropt": False
-                        }
+            coherence_type = "SNOOP"
+            for protocol in PROTOCOLS:
+                try:
+                    sim_results = run_mpcsim(protocol, coherence_type, num_procs)
+                    sim_results["access_pattern"] = pattern
+                    sim_results["diropt"] = False
+                    results.append(sim_results)
+                    
+                    with open(os.path.join(output_dir, "raw_results_incremental.json"), "w") as f:
+                        json.dump(results, f, indent=2)
+                except Exception as e:
+                    config = {
+                        "protocol": protocol,
+                        "coherence_type": coherence_type,
+                        "num_procs": num_procs,
+                        "pattern": pattern,
+                        "diropt": False
+                    }
+                    print(f"Error running configuration {config}: {e}")
+            
+            coherence_type = "DIRECTORY"
+            protocol = "MESI"
+            
+            for diropt in [False, True]:
+                try:
+                    sim_results = run_mpcsim(protocol, coherence_type, num_procs, diropt=diropt)
+                    sim_results["access_pattern"] = pattern
+                    sim_results["diropt"] = diropt
+                    results.append(sim_results)
+                    
+                    with open(os.path.join(output_dir, "raw_results_incremental.json"), "w") as f:
+                        json.dump(results, f, indent=2)
+                except Exception as e:
+                    config = {
+                        "protocol": protocol,
+                        "coherence_type": coherence_type,
+                        "num_procs": num_procs,
+                        "pattern": pattern,
+                        "diropt": diropt
+                    }
+                    print(f"Error running configuration {config}: {e}")
     
     with open(os.path.join(output_dir, "raw_results.json"), "w") as f:
         json.dump(results, f, indent=2)
@@ -276,11 +283,44 @@ def create_plots(df, output_dir=RESULTS_DIR):
     for pattern in df["access_pattern"].unique():
         def plot_scalability():
             pattern_df = df[df["access_pattern"] == pattern]
-            sns.lineplot(x="num_procs", y="total_traffic", hue="coherence_protocol", 
-                        style="coherence_type", markers=True, data=pattern_df)
-            plt.xlabel("Number of Processors")
-            plt.ylabel("Total Traffic")
-            plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+            
+            line_styles = ['-', '--', '-.', ':', '-']
+            markers = ['o', 's', '^', 'D', 'X', '*']
+            colors = ['#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#e6194b']
+            
+            plt.figure(figsize=(16, 10))
+            
+            groups = pattern_df.groupby(['coherence_protocol', 'coherence_type'])
+            
+            for i, ((protocol, coh_type), group) in enumerate(groups):
+                line_style = line_styles[i % len(line_styles)]
+                marker = markers[i % len(markers)]
+                color = colors[i % len(colors)]
+                
+                if coh_type == 'DIRECTORY':
+                    for diropt, subgroup in group.groupby('diropt'):
+                        label = f"{protocol}-{coh_type}" + (f"-OPT" if diropt else "")
+                        plt.plot(subgroup["num_procs"], subgroup["total_traffic"] / 1e7, 
+                                 linestyle=line_style, marker=marker, color=color,
+                                 linewidth=3, markersize=10, label=label, 
+                                 alpha=0.8 if diropt else 1.0)
+                else:
+                    label = f"{protocol}-{coh_type}"
+                    plt.plot(group["num_procs"], group["total_traffic"] / 1e7, 
+                             linestyle=line_style, marker=marker, color=color,
+                             linewidth=3, markersize=10, label=label)
+            
+            plt.grid(True, linestyle='--', alpha=0.7)
+            
+            plt.legend(title="Protocol-Coherence Type", bbox_to_anchor=(1.05, 1), 
+                      loc="upper left", frameon=True, framealpha=0.95, fontsize=12)
+            
+            plt.xlabel("Number of Processors", fontsize=14)
+            plt.ylabel("Total Traffic (millions)", fontsize=14)
+            
+            plt.annotate(f"Access Pattern: {pattern}", xy=(0.02, 0.95), 
+                        xycoords='axes fraction', fontsize=14, 
+                        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
         
         safe_plot(plot_scalability, f"scalability_{pattern}.png", 
                  f"Scalability: Traffic vs. Number of Processors ({pattern})")
@@ -314,10 +354,11 @@ def create_plots(df, output_dir=RESULTS_DIR):
     dir_df = df[df["coherence_type"] == "DIRECTORY"]
     if not dir_df.empty:
         def plot_dir_optimization():
-            sns.barplot(x="coherence_protocol", y="total_traffic", hue="diropt", data=dir_df)
-            plt.xlabel("Coherence Protocol")
+            sns.barplot(x="access_pattern", y="total_traffic", hue="diropt", data=dir_df)
+            plt.xlabel("Access Pattern")
             plt.ylabel("Average Total Traffic")
             plt.legend(title="Directory Optimization")
+            plt.xticks(rotation=45)
         
         safe_plot(plot_dir_optimization, "directory_optimization_impact.png",
                  "Impact of Directory Optimization on Traffic")
@@ -416,7 +457,7 @@ def analyze_protocol_metrics(df, output_dir=RESULTS_DIR):
     return analysis
 
 def main():
-    global PROCESSOR_COUNTS, ACCESS_PATTERNS, PROTOCOLS, COHERENCE_TYPES
+    global PROCESSOR_COUNTS, ACCESS_PATTERNS, PROTOCOLS, COHERENCE_TYPES, DIRECTORY_COMPATIBLE_PROTOCOLS
     
     parser = argparse.ArgumentParser(description="Cache Coherence Protocol Evaluation")
     parser.add_argument("--skip-run", action="store_true", help="Skip running simulations and use existing results")
@@ -457,7 +498,7 @@ def main():
         
         print(f"Running evaluation with:")
         print(f"  Access patterns: {ACCESS_PATTERNS}")
-        print(f"  Protocols: {PROTOCOLS}")
+        print(f"  Protocols (for snooping): {PROTOCOLS}")
         print(f"  Coherence types: {COHERENCE_TYPES}")
         print(f"  Processor counts: {PROCESSOR_COUNTS}")
         
