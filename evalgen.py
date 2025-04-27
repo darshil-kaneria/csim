@@ -181,7 +181,6 @@ def run_full_evaluation(output_dir=RESULTS_DIR):
     return results
 
 # Main calc func
-# Welcome to change/update this to add new metrics
 def process_results(results):
     processed_data = []
     
@@ -196,6 +195,8 @@ def process_results(results):
         total_memory_ops = total_hits + total_misses
         
         hit_rate = total_hits / total_memory_ops if total_memory_ops > 0 else 0
+        miss_rate = total_misses / total_memory_ops if total_memory_ops > 0 else 0
+        eviction_rate = total_evictions / total_memory_ops if total_memory_ops > 0 else 0
         
         interconnect = result.get("interconnect", {})
         total_traffic = interconnect.get("total_traffic", 0)
@@ -216,6 +217,8 @@ def process_results(results):
             "total_misses": int(total_misses),
             "total_evictions": int(total_evictions),
             "hit_rate": float(hit_rate),
+            "miss_rate": float(miss_rate),
+            "eviction_rate": float(eviction_rate),
             "total_traffic": int(total_traffic),
             "cache_control_traffic": int(cache_control_traffic),
             "cache_data_traffic": int(cache_data_traffic),
@@ -229,8 +232,8 @@ def process_results(results):
     df = pd.DataFrame(processed_data)
     
     numeric_cols = ["num_procs", "total_hits", "total_misses", "total_evictions", 
-                    "hit_rate", "total_traffic", "cache_control_traffic", 
-                    "cache_data_traffic", "memory_data_traffic", 
+                    "hit_rate", "miss_rate", "eviction_rate", "total_traffic", 
+                    "cache_control_traffic", "cache_data_traffic", "memory_data_traffic", 
                     "traffic_per_memory_op", "data_to_total_traffic_ratio"]
     
     for col in numeric_cols:
@@ -240,7 +243,6 @@ def process_results(results):
     return df
 
 # All plotting below
-# Feel free to change/update
 def create_plots(df, output_dir=RESULTS_DIR):
     plots_dir = os.path.join(output_dir, "plots")
     os.makedirs(plots_dir, exist_ok=True)
@@ -279,6 +281,18 @@ def create_plots(df, output_dir=RESULTS_DIR):
     
     safe_plot(plot_traffic, "traffic_by_protocol_pattern.png",
              "Total Interconnect Traffic by Protocol and Access Pattern")
+    
+    # Switched the x-axis with the pattern from legends
+    def plot_evictions():
+        eviction_df = df[df["num_procs"] == 8]
+        sns.barplot(x="access_pattern", y="total_evictions", hue="coherence_protocol", data=eviction_df)
+        plt.xlabel("Access Pattern")
+        plt.ylabel("Coherence Evictions")
+        plt.xticks(rotation=45)
+        plt.legend(title="Protocol", bbox_to_anchor=(1.05, 1), loc="upper left")
+    
+    safe_plot(plot_evictions, "coherence_evictions_by_pattern.png",
+             "Coherence-Related Evictions by Access Pattern and Protocol")
     
     for pattern in df["access_pattern"].unique():
         def plot_scalability():
@@ -351,17 +365,25 @@ def create_plots(df, output_dir=RESULTS_DIR):
     safe_plot(plot_coherence_comparison, "snooping_vs_directory.png",
              "Snooping vs. Directory: Total Traffic by Protocol")
     
+    # Fixed this to false sharing
+    # Feel free to change size of fig because
+    # it may show up as too wide.
     dir_df = df[df["coherence_type"] == "DIRECTORY"]
     if not dir_df.empty:
         def plot_dir_optimization():
-            sns.barplot(x="access_pattern", y="total_traffic", hue="diropt", data=dir_df)
-            plt.xlabel("Access Pattern")
-            plt.ylabel("Average Total Traffic")
-            plt.legend(title="Directory Optimization")
-            plt.xticks(rotation=45)
+            pattern = "false_sharing"
+            pattern_dir_df = dir_df[dir_df["access_pattern"] == pattern]
+            
+            procs_df = pattern_dir_df[pattern_dir_df["num_procs"] == 8]
+            
+            sns.barplot(x="diropt", y="total_traffic", data=procs_df)
+            plt.xlabel("Directory Optimization")
+            plt.ylabel("Total Traffic")
+            plt.xticks([0, 1], ["Off", "On"])
+            plt.title(f"Impact of Directory Optimization on Traffic - {pattern} (8 Processors)")
         
         safe_plot(plot_dir_optimization, "directory_optimization_impact.png",
-                 "Impact of Directory Optimization on Traffic")
+                 "Impact of Directory Optimization on Traffic (False Sharing Pattern)")
     
     compare_df = df[(df["coherence_protocol"].isin(["MESI", "MSI"])) & 
                    (df["coherence_type"] == "SNOOP")]
@@ -384,27 +406,51 @@ def create_plots(df, output_dir=RESULTS_DIR):
     safe_plot(plot_traffic_efficiency, "traffic_efficiency.png",
              "Traffic Efficiency: Traffic per Memory Operation")
     
-    def plot_evictions():
-        eviction_df = df.groupby(["coherence_protocol", "access_pattern"], as_index=False)[["total_evictions"]].mean()
-        sns.barplot(x="coherence_protocol", y="total_evictions", hue="access_pattern", data=eviction_df)
-        plt.xlabel("Coherence Protocol")
-        plt.ylabel("Average Evictions")
-        plt.legend(title="Access Pattern", bbox_to_anchor=(1.05, 1), loc="upper left")
+    # plotted it this way because it seemed cleaner than having multi variable bars
+    def plot_hit_miss_eviction_rates():
+        fixed_procs_df = df[df["num_procs"] == 8]
+        
+        for pattern in fixed_procs_df["access_pattern"].unique():
+            pattern_df = fixed_procs_df[fixed_procs_df["access_pattern"] == pattern]
+            
+            metrics_df = pattern_df.copy()
+            metrics_df = metrics_df[metrics_df["coherence_type"] == "SNOOP"]
+            
+            melted_df = pd.melt(
+                metrics_df, 
+                id_vars=["coherence_protocol"],
+                value_vars=["hit_rate", "miss_rate", "eviction_rate"],
+                var_name="Metric", 
+                value_name="Rate"
+            )
+            
+            plt.figure(figsize=(14, 8))
+            g = sns.barplot(
+                x="coherence_protocol", 
+                y="Rate", 
+                hue="Metric", 
+                data=melted_df,
+                palette=["#2ecc71", "#e74c3c", "#3498db"] # Feel free to change these if visibiluty is bad
+            )
+            
+            plt.title(f"Cache Performance Metrics for {pattern} (8 Processors)")
+            plt.xlabel("Coherence Protocol")
+            plt.ylabel("Rate")
+            plt.ylim(0, 1)
+            
+            for container in g.containers:
+                g.bar_label(container, fmt='%.2f', fontsize=10)
+            
+            plt.legend(title="Metric", labels=["Hit Rate", "Miss Rate", "Eviction Rate"])
+            plt.tight_layout()
+            plt.savefig(os.path.join(plots_dir, f"hit_miss_eviction_rates_{pattern}.png"))
+            plt.close()
+            print(f"Created plot: hit_miss_eviction_rates_{pattern}.png")
     
-    safe_plot(plot_evictions, "coherence_evictions.png",
-             "Coherence-Related Evictions by Protocol and Access Pattern")
-    
-    def plot_heatmap():
-        pivot_table = df.pivot_table(
-            index="coherence_protocol", 
-            columns="access_pattern", 
-            values="hit_rate", 
-            aggfunc="mean"
-        )
-        sns.heatmap(pivot_table, annot=True, cmap="YlGnBu", vmin=0, vmax=1, fmt=".2f")
-    
-    safe_plot(plot_heatmap, "hit_rate_heatmap.png",
-             "Hit Rate Heatmap: Protocol vs. Access Pattern")
+    try:
+        plot_hit_miss_eviction_rates()
+    except Exception as e:
+        print(f"Error creating hit/miss/eviction rate plots: {e}")
 
 def analyze_protocol_metrics(df, output_dir=RESULTS_DIR):
     reports_dir = os.path.join(output_dir, "protocol_analysis")
@@ -457,7 +503,7 @@ def analyze_protocol_metrics(df, output_dir=RESULTS_DIR):
     return analysis
 
 def main():
-    global PROCESSOR_COUNTS, ACCESS_PATTERNS, PROTOCOLS, COHERENCE_TYPES, DIRECTORY_COMPATIBLE_PROTOCOLS
+    global PROCESSOR_COUNTS, ACCESS_PATTERNS, PROTOCOLS, COHERENCE_TYPES
     
     parser = argparse.ArgumentParser(description="Cache Coherence Protocol Evaluation")
     parser.add_argument("--skip-run", action="store_true", help="Skip running simulations and use existing results")

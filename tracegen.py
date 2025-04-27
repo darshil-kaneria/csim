@@ -24,80 +24,162 @@ class TraceGen:
                 base_addr = 0
                 offset = proc * 8
                 addr = base_addr + offset
-
+                
+                recent_addresses = []
+                
                 for i in range(num_accesses):
+                    if recent_addresses and random.random() < 0.7:
+                        addr = random.choice(recent_addresses)
+                    else:
+                        addr = base_addr + offset
+                    
                     access_type = AccessType.LOAD if i % 2 == 0 else AccessType.STORE
                     f.write(f"{access_type.value} {addr}\n")
+                    
+                    if len(recent_addresses) >= 3:
+                        recent_addresses.pop(0)
+                    recent_addresses.append(addr)
 
-    def generate_no_sharing(self, num_accesses=10):     
+    def generate_no_sharing(self, num_accesses=10):
         for proc in range(self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
                 base_addr = proc * 1000
+                
+                addr_pool = [base_addr + (i % 10) * self.cache_line_size for i in range(10)]
+                recent_addresses = []
+                
                 for i in range(num_accesses):
-                    addr = base_addr + (i % 10) * self.cache_line_size
+                    if recent_addresses and random.random() < 0.7:
+                        addr = random.choice(recent_addresses)
+                    else:
+                        addr = random.choice(addr_pool)
+                    
                     access_type = AccessType.LOAD if i % 3 != 1 else AccessType.STORE
                     f.write(f"{access_type.value} {addr}\n")
+                    
+                    if len(recent_addresses) >= 3:
+                        recent_addresses.pop(0)
+                    recent_addresses.append(addr)
     
     def generate_producer_consumer(self, num_accesses=10):
-        # This one for producer proc fixing it at 0 currently
+        # Producer process (proc 0)
         with open(f"{self.output_dir}/0.txt", 'w') as f:
-            addr = 100
+            addr_pool = [100 + i * self.cache_line_size for i in range(10)]
+            recent_addresses = []
+            
             for i in range(num_accesses):
+                if recent_addresses and random.random() < 0.6:
+                    addr = random.choice(recent_addresses)
+                else:
+                    addr = addr_pool[i % len(addr_pool)]
+                
                 f.write(f"{AccessType.STORE.value} {addr}\n")
-                addr += self.cache_line_size
+                
+                if len(recent_addresses) >= 3:
+                    recent_addresses.pop(0)
+                recent_addresses.append(addr)
         
-        # This for consumer procs
+        # Consumer processes
         for proc in range(1, self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
-                addr = 100
+                addr_pool = [100 + i * self.cache_line_size for i in range(10)]
+                recent_addresses = []
+                
                 for i in range(num_accesses):
+                    if recent_addresses and random.random() < 0.7:
+                        addr = random.choice(recent_addresses)
+                    else:
+                        addr = addr_pool[i % len(addr_pool)]
+                    
                     f.write(f"{AccessType.LOAD.value} {addr}\n")
-                    addr += self.cache_line_size
+                    
+                    if len(recent_addresses) >= 3:
+                        recent_addresses.pop(0)
+                    recent_addresses.append(addr)
 
     def generate_multiple_writers(self, num_accesses=10):
         for proc in range(self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", "w") as f:
-                addr = 150
+                base_addr = 150
+                addr_pool = [base_addr + i * 4 for i in range(3)]
+                recent_addresses = []
+                
                 for i in range(num_accesses):
+                    if recent_addresses and random.random() < 0.8:
+                        addr = random.choice(recent_addresses)
+                    else:
+                        addr = random.choice(addr_pool)
+                    
                     access_type = AccessType.LOAD if i % 2 == 0 else AccessType.STORE
                     f.write(f"{access_type.value} {addr}\n")
+                    
+                    if len(recent_addresses) >= 3:
+                        recent_addresses.pop(0)
+                    recent_addresses.append(addr)
 
-    def generate_multiple_readers(self, num_accesses=10):        
+    def generate_multiple_readers(self, num_accesses=10):
         for proc in range(self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
-                addr = 200
+                base_addr = 200
+                addr_pool = [base_addr + i * self.cache_line_size for i in range(5)]
+                recent_addresses = []
+                
                 for i in range(num_accesses):
+                    if recent_addresses and random.random() < 0.75:
+                        addr = random.choice(recent_addresses)
+                    else:
+                        addr = random.choice(addr_pool)
+                    
                     f.write(f"{AccessType.LOAD.value} {addr}\n")
-                    if i % 3 == 0:
-                        addr += self.cache_line_size
+                    
+                    if len(recent_addresses) >= 3:
+                        recent_addresses.pop(0)
+                    recent_addresses.append(addr)
 
-    def generate_random(self, num_accesses=10):        
+    def generate_random(self, num_accesses=10):
         addr_range = 512
+        
         for proc in range(self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
+                recent_addresses = []
+                
                 for i in range(num_accesses):
-                    addr = random.randrange(0, addr_range, 4)
+                    if recent_addresses and random.random() < 0.65:
+                        addr = random.choice(recent_addresses)
+                    else:
+                        addr = random.randrange(0, addr_range, 4)
+                    
                     access_type = random.choice([AccessType.LOAD, AccessType.STORE])
                     f.write(f"{access_type.value} {addr}\n")
+                    
+                    if len(recent_addresses) >= 5:
+                        recent_addresses.pop(0)
+                    recent_addresses.append(addr)
 
     def generate_partial_proc_use(self, num_accesses=10):
-        active_procs = max(1, int(self.num_procs * 0.25)) # Change this to test with different distribution of procs to be used as active
-        active_proc_indices = random.sample(range(self.num_procs), active_procs)        
+        active_procs = max(1, int(self.num_procs * 0.25))
+        active_proc_indices = random.sample(range(self.num_procs), active_procs)
         shared_addr_base = 1000
         
         for proc in range(self.num_procs):
             with open(f"{self.output_dir}/{proc}.txt", 'w') as f:
                 if proc in active_proc_indices:
+                    addr_pool = [shared_addr_base + i * self.cache_line_size for i in range(5)]
+                    recent_addresses = []
+                    
                     for i in range(num_accesses):
-                        addr = shared_addr_base + (i % 3) * self.cache_line_size
+                        if recent_addresses and random.random() < 0.7:
+                            addr = random.choice(recent_addresses)
+                        else:
+                            addr = random.choice(addr_pool)
+                        
                         access_type = AccessType.LOAD if i % 2 == 0 else AccessType.STORE
                         f.write(f"{access_type.value} {addr}\n")
-                # else:
-                #     private_addr_base = 5000 + proc * 1000
-                #     for i in range(num_accesses):
-                #         addr = private_addr_base + (i % 5) * self.cache_line_size
-                #         access_type = AccessType.LOAD if i % 4 != 0 else AccessType.STORE
-                #         f.write(f"{access_type.value} {addr}\n")
+                        
+                        if len(recent_addresses) >= 3:
+                            recent_addresses.pop(0)
+                        recent_addresses.append(addr)
+
 
 def main():
     parser = argparse.ArgumentParser()
