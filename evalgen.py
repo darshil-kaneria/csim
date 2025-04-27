@@ -451,6 +451,106 @@ def create_plots(df, output_dir=RESULTS_DIR):
         plot_hit_miss_eviction_rates()
     except Exception as e:
         print(f"Error creating hit/miss/eviction rate plots: {e}")
+    
+    # def plot_protocol_metrics_by_pattern():
+        
+    #     filtered_df = df[(df["num_procs"] == 8) & (df["coherence_type"] == "SNOOP")]
+        
+    #     access_patterns = filtered_df["access_pattern"].unique()
+    #     protocols = filtered_df["coherence_protocol"].unique()
+        
+    #     plt.figure(figsize=(20, 12))
+        
+    #     colors = {
+    #         "hit_rate": "#2ecc71",
+    #         "miss_rate": "#e74c3c",
+    #         "eviction_rate": "#3498db"
+    #     }
+        
+    #     pattern_width = 0.8
+    #     protocol_width = pattern_width / len(protocols)
+    #     bar_width = protocol_width / 3
+        
+    #     x = np.arange(len(access_patterns))
+        
+    #     legend_handles = []
+        
+    #     for p_idx, protocol in enumerate(protocols):
+    #         protocol_df = filtered_df[filtered_df["coherence_protocol"] == protocol]
+            
+    #         hit_rates = []
+    #         miss_rates = []
+    #         eviction_rates = []
+            
+    #         for pattern in access_patterns:
+    #             pattern_df = protocol_df[protocol_df["access_pattern"] == pattern]
+    #             if not pattern_df.empty:
+    #                 hit_rates.append(pattern_df["hit_rate"].values[0])
+    #                 miss_rates.append(pattern_df["miss_rate"].values[0])
+    #                 eviction_rates.append(pattern_df["eviction_rate"].values[0])
+    #             else:
+    #                 hit_rates.append(0)
+    #                 miss_rates.append(0)
+    #                 eviction_rates.append(0)
+            
+    #         protocol_offset = (p_idx - len(protocols)/2 + 0.5) * protocol_width
+            
+    #         hit_bars = plt.bar(
+    #             x + protocol_offset - bar_width, 
+    #             hit_rates, 
+    #             bar_width, 
+    #             color=colors["hit_rate"], 
+    #             label=f"{protocol} - Hit Rate" if p_idx == 0 else ""
+    #         )
+            
+    #         miss_bars = plt.bar(
+    #             x + protocol_offset, 
+    #             miss_rates, 
+    #             bar_width, 
+    #             color=colors["miss_rate"], 
+    #             label=f"{protocol} - Miss Rate" if p_idx == 0 else ""
+    #         )
+            
+    #         eviction_bars = plt.bar(
+    #             x + protocol_offset + bar_width, 
+    #             eviction_rates, 
+    #             bar_width, 
+    #             color=colors["eviction_rate"], 
+    #             label=f"{protocol} - Eviction Rate" if p_idx == 0 else ""
+    #         )
+            
+    #         if p_idx == 0:
+    #             legend_handles.extend([hit_bars, miss_bars, eviction_bars])
+            
+    #         for i, v in enumerate(hit_rates):
+    #             plt.text(x[i] + protocol_offset - bar_width, v + 0.02, f"{v:.2f}", ha='center', fontsize=8)
+    #         for i, v in enumerate(miss_rates):
+    #             plt.text(x[i] + protocol_offset, v + 0.02, f"{v:.2f}", ha='center', fontsize=8)
+    #         for i, v in enumerate(eviction_rates):
+    #             plt.text(x[i] + protocol_offset + bar_width, v + 0.02, f"{v:.2f}", ha='center', fontsize=8)
+        
+    #     protocol_handles = [plt.Rectangle((0,0),1,1, color=f"C{i}") for i in range(len(protocols))]
+    #     protocol_legend = plt.legend(protocol_handles, protocols, 
+    #                                title="Protocols", loc="upper right",
+    #                                bbox_to_anchor=(1.15, 1))
+    #     plt.gca().add_artist(protocol_legend)
+        
+    #     metric_handles = [plt.Rectangle((0,0),1,1, color=color) for color in colors.values()]
+    #     plt.legend(metric_handles, ["Hit Rate", "Miss Rate", "Eviction Rate"], 
+    #               title="Metrics", loc="upper right",
+    #               bbox_to_anchor=(1.15, 0.8))
+        
+    #     plt.xlabel('Access Pattern', fontsize=14)
+    #     plt.ylabel('Rate', fontsize=14)
+    #     plt.title('Cache Performance Metrics by Protocol and Access Pattern (8 Processors)', fontsize=16)
+        
+    #     plt.xticks(x, access_patterns, rotation=45, ha='right')
+    #     plt.ylim(0, 1.1)
+        
+    #     plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
+    # safe_plot(plot_protocol_metrics_by_pattern, "protocol_metrics_by_pattern.png",
+    #          "Protocol Performance Metrics by Access Pattern")
 
 def analyze_protocol_metrics(df, output_dir=RESULTS_DIR):
     reports_dir = os.path.join(output_dir, "protocol_analysis")
