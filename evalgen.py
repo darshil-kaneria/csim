@@ -31,7 +31,7 @@ COHERENCE_TYPES = ["SNOOP", "DIRECTORY"]
 ACCESS_PATTERNS = ["false_sharing", "producer_consumer", "multiple_writers", 
                   "multiple_readers", "random", "no_sharing"]
 PROCESSOR_COUNTS = [4, 8, 16, 32, 64, 128]
-NUM_ACCESSES = 100
+NUM_ACCESSES = 50
 
 RESULTS_DIR = "evaluation_results"
 
@@ -338,6 +338,49 @@ def create_plots(df, output_dir=RESULTS_DIR):
         
         safe_plot(plot_scalability, f"scalability_{pattern}.png", 
                  f"Scalability: Traffic vs. Number of Processors ({pattern})")
+        
+        def plot_directory_scalability_for_producer_consumer():
+            pc_dir_df = df[(df["access_pattern"] == "producer_consumer") & 
+                        (df["coherence_type"] == "DIRECTORY")]
+            
+            if pc_dir_df.empty:
+                print("No data foun")
+                return
+            
+            line_styles = ['-', '--']
+            markers = ['o', 's']
+            colors = ['#4363d8', '#e6194b']
+            
+            plt.figure(figsize=(16, 10))
+            
+            for j, (diropt, subgroup) in enumerate(pc_dir_df.groupby('diropt')):
+                line_style = line_styles[j % len(line_styles)]
+                marker = markers[j % len(markers)]
+                color = colors[j % len(colors)]
+                
+                label = f"DIRECTORY" + (f"-OPT" if diropt else "")
+                plt.plot(subgroup["num_procs"], subgroup["total_traffic"] / 1e7, 
+                        linestyle=line_style, marker=marker, color=color,
+                        linewidth=3, markersize=10, label=label)
+            
+            plt.grid(True, linestyle='--', alpha=0.7)
+            
+            plt.legend(title="Directory Type", bbox_to_anchor=(1.05, 1), 
+                    loc="upper left", frameon=True, framealpha=0.95, fontsize=12)
+
+            plt.xlabel("Number of Processors", fontsize=16)
+            plt.xticks(fontsize=16)
+            plt.yticks(fontsize=16)
+            plt.ylabel("Total Traffic (millions)", fontsize=16)
+            plt.title("Directory vs. Directory-OPT Scalability: Producer-Consumer Pattern", fontsize=16)
+            
+            plt.annotate("Access Pattern: producer_consumer", xy=(0.02, 0.95), 
+                        xycoords='axes fraction', fontsize=14, 
+                        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
+
+        safe_plot(plot_directory_scalability_for_producer_consumer, 
+                "directory_scalability_producer_consumer.png",
+                "Directory vs. Directory-OPT Scalability: Producer-Consumer Pattern")
     
     for protocol in df["coherence_protocol"].unique():
         def plot_traffic_breakdown():
