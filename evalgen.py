@@ -20,10 +20,17 @@ import json
 # The style can be changed but I'm following the seaborn style
 sns.set_theme(style="whitegrid")
 plt.rcParams.update({
-    'figure.figsize': (12, 8),
-    'font.size': 12,
-    'axes.titlesize': 16,
-    'axes.labelsize': 14
+    'figure.figsize': (14, 10),  
+    'font.size': 14,
+    'axes.titlesize': 18,
+    'axes.labelsize': 16,
+    'xtick.labelsize': 14,
+    'ytick.labelsize': 14,
+    'legend.fontsize': 14,
+    'xtick.major.size': 14,
+    'ytick.major.size': 14,
+    'xtick.major.width': 1.5,
+    'ytick.major.width': 1.5
 })
 
 PROTOCOLS = ["MI", "MSI", "MESI", "MOESI", "MESIF"]
@@ -254,7 +261,7 @@ def create_plots(df, output_dir=RESULTS_DIR):
         try:
             plt.figure(figsize=(14, 8))
             plot_function()
-            plt.title(title)
+            plt.title(title, fontsize=18, weight='bold')
             plt.tight_layout()
             plt.savefig(os.path.join(plots_dir, filename))
             plt.close()
@@ -264,10 +271,12 @@ def create_plots(df, output_dir=RESULTS_DIR):
     
     def plot_hit_rate():
         sns.barplot(x="coherence_protocol", y="hit_rate", hue="access_pattern", data=df)
-        plt.xlabel("Coherence Protocol")
-        plt.ylabel("Hit Rate")
+        plt.xlabel("Coherence Protocol", fontsize=16, weight='bold')
+        plt.ylabel("Hit Rate", fontsize=16, weight='bold')
         plt.ylim(0, 1)
-        plt.legend(title="Access Pattern", bbox_to_anchor=(1.05, 1), loc="upper left")
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.legend(title="Access Pattern", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=14)
     
     safe_plot(plot_hit_rate, "hit_rate_by_protocol_pattern.png", 
              "Cache Hit Rate by Protocol and Access Pattern")
@@ -275,9 +284,11 @@ def create_plots(df, output_dir=RESULTS_DIR):
     def plot_traffic():
         traffic_df = df.groupby(["coherence_protocol", "access_pattern"], as_index=False)[["total_traffic"]].mean()
         sns.barplot(x="coherence_protocol", y="total_traffic", hue="access_pattern", data=traffic_df)
-        plt.xlabel("Coherence Protocol")
-        plt.ylabel("Average Total Traffic")
-        plt.legend(title="Access Pattern", bbox_to_anchor=(1.05, 1), loc="upper left")
+        plt.xlabel("Coherence Protocol", fontsize=16, weight='bold')
+        plt.ylabel("Average Total Traffic", fontsize=16, weight='bold')
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.legend(title="Access Pattern", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=14)
     
     safe_plot(plot_traffic, "traffic_by_protocol_pattern.png",
              "Total Interconnect Traffic by Protocol and Access Pattern")
@@ -286,10 +297,11 @@ def create_plots(df, output_dir=RESULTS_DIR):
     def plot_evictions():
         eviction_df = df[df["num_procs"] == 8]
         sns.barplot(x="access_pattern", y="total_evictions", hue="coherence_protocol", data=eviction_df)
-        plt.xlabel("Access Pattern")
-        plt.ylabel("Coherence Evictions")
-        plt.xticks(rotation=45)
-        plt.legend(title="Protocol", bbox_to_anchor=(1.05, 1), loc="upper left")
+        plt.xlabel("Access Pattern", fontsize=16, weight='bold')
+        plt.ylabel("Coherence Evictions", fontsize=16, weight='bold')
+        plt.xticks(rotation=45, fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.legend(title="Protocol", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=14)
     
     safe_plot(plot_evictions, "coherence_evictions_by_pattern.png",
              "Coherence-Related Evictions by Access Pattern and Protocol")
@@ -302,7 +314,7 @@ def create_plots(df, output_dir=RESULTS_DIR):
             markers = ['o', 's', '^', 'D', 'X', '*']
             colors = ['#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#e6194b']
             
-            plt.figure(figsize=(16, 10))
+            plt.figure(figsize=(20, 14))
             
             groups = pattern_df.groupby(['coherence_protocol', 'coherence_type'])
             
@@ -327,13 +339,20 @@ def create_plots(df, output_dir=RESULTS_DIR):
             plt.grid(True, linestyle='--', alpha=0.7)
             
             plt.legend(title="Protocol-Coherence Type", bbox_to_anchor=(1.05, 1), 
-                      loc="upper left", frameon=True, framealpha=0.95, fontsize=12)
+                      loc="upper left", frameon=True, framealpha=0.95, fontsize=16)
             
-            plt.xlabel("Number of Processors", fontsize=14)
-            plt.ylabel("Total Traffic (millions)", fontsize=14)
+            plt.xlabel("Number of Processors", fontsize=18)
+            plt.ylabel("Total Traffic (millions)", fontsize=18)
+            
+            plt.xticks(fontsize=16)
+            plt.yticks(fontsize=16)
+            
+            plt.gca().xaxis.label.set_weight('bold')
+            plt.gca().yaxis.label.set_weight('bold')
+            plt.title(f"Scalability: Traffic vs. Number of Processors ({pattern})", fontsize=20, weight='bold')
             
             plt.annotate(f"Access Pattern: {pattern}", xy=(0.02, 0.95), 
-                        xycoords='axes fraction', fontsize=14, 
+                        xycoords='axes fraction', fontsize=16, 
                         bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
         
         safe_plot(plot_scalability, f"scalability_{pattern}.png", 
@@ -351,7 +370,7 @@ def create_plots(df, output_dir=RESULTS_DIR):
             markers = ['o', 's']
             colors = ['#4363d8', '#e6194b']
             
-            plt.figure(figsize=(16, 10))
+            plt.figure(figsize=(20, 14))
             
             for j, (diropt, subgroup) in enumerate(pc_dir_df.groupby('diropt')):
                 line_style = line_styles[j % len(line_styles)]
@@ -366,16 +385,20 @@ def create_plots(df, output_dir=RESULTS_DIR):
             plt.grid(True, linestyle='--', alpha=0.7)
             
             plt.legend(title="Directory Type", bbox_to_anchor=(1.05, 1), 
-                    loc="upper left", frameon=True, framealpha=0.95, fontsize=12)
+                    loc="upper left", frameon=True, framealpha=0.95, fontsize=16)
 
-            plt.xlabel("Number of Processors", fontsize=16)
+            plt.xlabel("Number of Processors", fontsize=18)
             plt.xticks(fontsize=16)
             plt.yticks(fontsize=16)
-            plt.ylabel("Total Traffic (millions)", fontsize=16)
-            plt.title("Directory vs. Directory-OPT Scalability: Producer-Consumer Pattern", fontsize=16)
+            plt.ylabel("Total Traffic (millions)", fontsize=18)
+            plt.title("Directory vs. Directory-OPT Scalability: Producer-Consumer Pattern", fontsize=20)
+            
+            plt.gca().xaxis.label.set_weight('bold')
+            plt.gca().yaxis.label.set_weight('bold')
+            plt.gca().title.set_weight('bold')
             
             plt.annotate("Access Pattern: producer_consumer", xy=(0.02, 0.95), 
-                        xycoords='axes fraction', fontsize=14, 
+                        xycoords='axes fraction', fontsize=16, 
                         bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="gray", alpha=0.8))
 
         safe_plot(plot_directory_scalability_for_producer_consumer, 
@@ -392,18 +415,22 @@ def create_plots(df, output_dir=RESULTS_DIR):
                                  value_vars=traffic_cols, var_name="Traffic Type", value_name="Traffic")
             
             sns.barplot(x="num_procs", y="Traffic", hue="Traffic Type", data=breakdown_df)
-            plt.xlabel("Number of Processors")
-            plt.ylabel("Traffic")
-            plt.legend(title="Traffic Type", bbox_to_anchor=(1.05, 1), loc="upper left")
+            plt.xlabel("Number of Processors", fontsize=16, weight='bold')
+            plt.ylabel("Traffic", fontsize=16, weight='bold')
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
+            plt.legend(title="Traffic Type", bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=14)
         
         safe_plot(plot_traffic_breakdown, f"traffic_breakdown_{protocol}.png",
                  f"Traffic Breakdown for {protocol}")
     
     def plot_coherence_comparison():
         sns.barplot(x="coherence_protocol", y="total_traffic", hue="coherence_type", data=df)
-        plt.xlabel("Coherence Protocol")
-        plt.ylabel("Average Total Traffic")
-        plt.legend(title="Coherence Type")
+        plt.xlabel("Coherence Protocol", fontsize=16, weight='bold')
+        plt.ylabel("Average Total Traffic", fontsize=16, weight='bold')
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.legend(title="Coherence Type", fontsize=14)
     
     safe_plot(plot_coherence_comparison, "snooping_vs_directory.png",
              "Snooping vs. Directory: Total Traffic by Protocol")
@@ -420,10 +447,11 @@ def create_plots(df, output_dir=RESULTS_DIR):
             procs_df = pattern_dir_df[pattern_dir_df["num_procs"] == 8]
             
             sns.barplot(x="diropt", y="total_traffic", data=procs_df)
-            plt.xlabel("Directory Optimization")
-            plt.ylabel("Total Traffic")
-            plt.xticks([0, 1], ["Off", "On"])
-            plt.title(f"Impact of Directory Optimization on Traffic - {pattern} (8 Processors)")
+            plt.xlabel("Directory Optimization", fontsize=16, weight='bold')
+            plt.ylabel("Total Traffic", fontsize=16, weight='bold')
+            plt.xticks([0, 1], ["Off", "On"], fontsize=14)
+            plt.yticks(fontsize=14)
+            plt.title(f"Impact of Directory Optimization on Traffic - {pattern} (8 Processors)", fontsize=18, weight='bold')
         
         safe_plot(plot_dir_optimization, "directory_optimization_impact.png",
                  "Impact of Directory Optimization on Traffic (False Sharing Pattern)")
@@ -433,18 +461,22 @@ def create_plots(df, output_dir=RESULTS_DIR):
     if not compare_df.empty:
         def plot_protocol_comparison():
             sns.barplot(x="access_pattern", y="hit_rate", hue="coherence_protocol", data=compare_df)
-            plt.xlabel("Access Pattern")
-            plt.ylabel("Hit Rate")
+            plt.xlabel("Access Pattern", fontsize=16, weight='bold')
+            plt.ylabel("Hit Rate", fontsize=16, weight='bold')
             plt.ylim(0, 1)
-            plt.legend(title="Protocol")
+            plt.xticks(rotation=45, fontsize=14)
+            plt.yticks(fontsize=14)
+            plt.legend(title="Protocol", fontsize=14)
         
         safe_plot(plot_protocol_comparison, "mesi_vs_msi_hitrate.png",
                  "MESI vs. MSI: Hit Rate Comparison")
     
     def plot_traffic_efficiency():
         sns.boxplot(x="coherence_protocol", y="traffic_per_memory_op", data=df)
-        plt.xlabel("Coherence Protocol")
-        plt.ylabel("Traffic per Memory Operation")
+        plt.xlabel("Coherence Protocol", fontsize=16, weight='bold')
+        plt.ylabel("Traffic per Memory Operation", fontsize=16, weight='bold')
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
     
     safe_plot(plot_traffic_efficiency, "traffic_efficiency.png",
              "Traffic Efficiency: Traffic per Memory Operation")
@@ -467,7 +499,7 @@ def create_plots(df, output_dir=RESULTS_DIR):
                 value_name="Rate"
             )
             
-            plt.figure(figsize=(14, 8))
+            plt.figure(figsize=(16, 10))
             g = sns.barplot(
                 x="coherence_protocol", 
                 y="Rate", 
@@ -476,15 +508,18 @@ def create_plots(df, output_dir=RESULTS_DIR):
                 palette=["#2ecc71", "#e74c3c", "#3498db"] # Feel free to change these if visibiluty is bad
             )
             
-            plt.title(f"Cache Performance Metrics for {pattern} (8 Processors)")
-            plt.xlabel("Coherence Protocol")
-            plt.ylabel("Rate")
+            plt.title(f"Cache Performance Metrics for {pattern} (8 Processors)", fontsize=18, weight='bold')
+            plt.xlabel("Coherence Protocol", fontsize=16, weight='bold')
+            plt.ylabel("Rate", fontsize=16, weight='bold')
             plt.ylim(0, 1)
             
-            for container in g.containers:
-                g.bar_label(container, fmt='%.2f', fontsize=10)
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
             
-            plt.legend(title="Metric", labels=["Hit Rate", "Miss Rate", "Eviction Rate"])
+            for container in g.containers:
+                g.bar_label(container, fmt='%.2f', fontsize=12)
+            
+            plt.legend(title="Metric", labels=["Hit Rate", "Miss Rate", "Eviction Rate"], fontsize=14)
             plt.tight_layout()
             plt.savefig(os.path.join(plots_dir, f"hit_miss_eviction_rates_{pattern}.png"))
             plt.close()
@@ -632,10 +667,13 @@ def analyze_protocol_metrics(df, output_dir=RESULTS_DIR):
         try:
             values = {protocol: data.get(metric, 0) for protocol, data in analysis.items()}
             
-            plt.figure(figsize=(12, 6))
+            plt.figure(figsize=(14, 8))
             plt.bar(values.keys(), values.values())
-            plt.title(f"Protocol Comparison: {metric_labels.get(metric, metric)}")
-            plt.ylabel(metric_labels.get(metric, metric))
+            plt.title(f"Protocol Comparison: {metric_labels.get(metric, metric)}", fontsize=18, weight='bold')
+            plt.ylabel(metric_labels.get(metric, metric), fontsize=16, weight='bold')
+            plt.xlabel("Protocol", fontsize=16, weight='bold')
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
             plt.grid(axis='y', linestyle='--', alpha=0.7)
             plt.tight_layout()
             plt.savefig(os.path.join(reports_dir, f"{metric}_comparison.png"))
