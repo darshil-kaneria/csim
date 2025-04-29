@@ -15,6 +15,19 @@ namespace csim
             os << "----------------------------------\n";
         }
 
+        size_t hits = 0;
+        size_t misses = 0;
+        size_t evictions = 0;
+        for(size_t proc = 0; proc < stats.num_procs_; proc++) {
+            hits += stats.cachestats[proc].hits;
+            misses += stats.cachestats[proc].misses;
+            evictions += stats.cachestats[proc].evictions;
+        }
+
+        os << "TOTAL HITS: \t" << hits << "\n";
+        os << "TOTAL MISSES: \t" << misses << "\n";
+        os << "TOTAL EVICTIONS: \t" << evictions << "\n\n";
+
         os << "INTERCONNECT" << "\n";
         os << "TRAFFIC:\t" << stats.interconstats.traffic << "\n";
         os << "CACHE CONTROL TRAFFIC:\t" << stats.interconstats.cache_control_traffic << "\n";

@@ -32,12 +32,11 @@ namespace csim
         void requestFromCache(DirMsg dirreq);
 
     private:
-        size_t num_procs_;
+        [[maybe_unused]] size_t num_procs_;
         std::unordered_map<size_t, DirEntry> directory_;
         DirectoryCaches *caches_;
         Stats *stats_;
         bool dir_opt_;
         DirState GetState(size_t address);
-        void SetState(size_t address, size_t proc, DirState newstate);
     };
 }

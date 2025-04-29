@@ -158,6 +158,7 @@ class TraceGen:
 
     def generate_partial_proc_use(self, num_accesses=10):
         active_procs = max(1, int(self.num_procs * 0.25))
+        #active_procs = 1
         active_proc_indices = random.sample(range(self.num_procs), active_procs)
         shared_addr_base = 1000
         

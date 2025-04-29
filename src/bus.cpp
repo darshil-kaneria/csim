@@ -54,6 +54,9 @@ namespace csim
 
                 stats_->interconstats.traffic++;
                 stats_->interconstats.cache_data_traffic++;
+            } else if(curr_msg_->busmsg.type_ == BusMsgType::UPGRADE) {
+                // an upgrade doesn't generate data
+                busresp.type_ = BusMsgType::DATA;
             }
             else if (curr_msg_->state == BusState::PROCESSING)
             {

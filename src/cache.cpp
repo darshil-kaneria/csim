@@ -37,7 +37,7 @@ namespace csim
                 stats_->cachestats[proc].misses++;
                 BusMsg busreq;
 
-                if ((coherproto_ == CoherenceProtocol::MESIF || coherproto_ == CoherenceProtocol::MOESI || coherproto_ == CoherenceProtocol::MESI || coherproto_ == CoherenceProtocol::MSI) && (cache.pending_cpu_req->inst_.command == OperationType::MEM_STORE) && getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::SHARED)
+                if ((coherproto_ == CoherenceProtocol::MESIF || coherproto_ == CoherenceProtocol::MOESI || coherproto_ == CoherenceProtocol::MESI || coherproto_ == CoherenceProtocol::MSI) && (cache.pending_cpu_req->inst_.command == OperationType::MEM_STORE) && (getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::SHARED || getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::OWNED || getCoherenceState(cache.pending_cpu_req->inst_.address, proc) == CoherenceState::FORWARDER))
                 {
                     busreq = BusMsg{
                         .proc_cycle_ = cycles,
@@ -961,7 +961,7 @@ namespace csim
         cache.lines[address] = newstate;
     }
 
-    DirectoryCaches::DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats) : num_procs_(num_procs),  cpus_(cpus), directory_(directory), stats_(stats)
+    DirectoryCaches::DirectoryCaches(size_t num_procs, Directory *directory, CPUS *cpus, Stats *stats) : num_procs_(num_procs), cpus_(cpus), directory_(directory), stats_(stats)
     {
         caches_ = std::vector(num_procs_, Cache{.lines = std::unordered_map<size_t, CoherenceState>(), .pending_cpu_req = std::nullopt});
     }
@@ -1142,7 +1142,7 @@ namespace csim
         }
         return os;
     }
-    
+
     std::ostream &operator<<(std::ostream &os, const CoherenceType &type)
     {
         switch (type)
