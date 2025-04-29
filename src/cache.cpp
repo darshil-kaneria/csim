@@ -23,7 +23,7 @@ namespace csim
             // there is a pending request from processor
             if (isAHit(cache.pending_cpu_req.value(), proc))
             {
-                std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
+                // std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
                 // record cache hit
                 stats_->cachestats[proc].hits++;
 
@@ -394,7 +394,7 @@ namespace csim
         }
         else if (type == OperationType::MEM_STORE)
         {
-            std::cout << "here " << currstate << std::endl;
+            // std::cout << "here " << currstate << std::endl;
             return currstate == CoherenceState::MODIFIED;
         }
         return false;
