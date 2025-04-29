@@ -23,7 +23,7 @@ namespace csim
             // there is a pending request from processor
             if (isAHit(cache.pending_cpu_req.value(), proc))
             {
-                // std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
+                std::cout << proc << "it is a hit " << cache.pending_cpu_req.value() << std::endl;
                 // record cache hit
                 stats_->cachestats[proc].hits++;
 
@@ -359,7 +359,14 @@ namespace csim
 
         if (busmsgtype == BusMsgType::DATA || busmsgtype == BusMsgType::MEMDATA)
         {
-            setCoherenceState(address, CoherenceState::MODIFIED, proc);
+            if (busresp.cpureq_.inst_.command == OperationType::MEM_LOAD)
+            {
+                setCoherenceState(address, CoherenceState::SHARED, proc);
+            }
+            else
+            {
+                setCoherenceState(address, CoherenceState::MODIFIED, proc);
+            }
         }
         else if (busmsgtype == BusMsgType::SHARED)
         {
@@ -387,6 +394,7 @@ namespace csim
         }
         else if (type == OperationType::MEM_STORE)
         {
+            std::cout << "here " << currstate << std::endl;
             return currstate == CoherenceState::MODIFIED;
         }
         return false;
@@ -545,7 +553,7 @@ namespace csim
         case OperationType::MEM_STORE:
             if (currstate == CoherenceState::EXCLUSIVE)
             {
-                // std::cout << proc << " E->M " << std::endl;
+                std::cout << proc << " E->M " << std::endl;
                 setCoherenceState(address, CoherenceState::MODIFIED, proc);
                 return true;
             }
